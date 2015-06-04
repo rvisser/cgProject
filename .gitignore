@@ -2,7 +2,7 @@
 *.slo
 *.lo
 *.o
-*.obj
+# *.obj # Causes conflicts with meshes
 
 # Precompiled Headers
 *.gch
@@ -26,3 +26,10 @@
 *.exe
 *.out
 *.app
+/Debug/
+/Release/
+
+# Generated project files
+.cproject
+.project
+/.settings/
