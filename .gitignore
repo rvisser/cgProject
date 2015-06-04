@@ -2,7 +2,7 @@
 *.slo
 *.lo
 *.o
-*.obj
+# *.obj # Causes conflicts with meshes
 
 # Precompiled Headers
 *.gch
