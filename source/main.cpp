@@ -217,7 +217,6 @@ void keyboard(unsigned char key, int x, int y)
 	{
 			if(MyLightPositions.size() == 0){
 				break;
-
 			}
 			else if(selectedLight == 0){
 				selectedLight = MyLightPositions.size()-1;
@@ -252,16 +251,23 @@ void keyboard(unsigned char key, int x, int y)
 		MyLightPositions[selectedLight]=getCameraPosition();
 		break;
 
-/*
 	//Remove selected light.
 	case 'x':
+	{
 		if(MyLightPositions.size() == 1){
+		    printf("You are not allowed to remove the last light in the scene.\n");
+		    fflush(stdout);
 		}
 		else{
-			//removeLight
+			MyLightPositions.erase(MyLightPositions.begin()+selectedLight);
+			if(selectedLight > 0)
+				selectedLight--;
+			else
+				selectedLight = MyLightPositions.size()-1;
 		}
+		break;
+	}
 
-*/
 	case 'r':
 	{
 		//Pressing r will launch the raytracing.
