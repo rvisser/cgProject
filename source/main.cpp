@@ -308,7 +308,7 @@ void keyboard(unsigned char key, int x, int y)
 				//launch raytracing for the given ray.
 				Vec3Df rgb = performRayTracing(origin, dest);
 				//store the result in an image 
-				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+				result.setPixel(x,y, RGBAValue(rgb[0], rgb[1], rgb[2], 1));
 			}
 
 		result.writeImage("result.ppm");
