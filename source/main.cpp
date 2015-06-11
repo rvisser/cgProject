@@ -32,7 +32,7 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 800;  // resolution X
 unsigned int WindowSize_Y = 800;  // resolution Y
 
-
+unsigned int selectedLight = 0;
 
 
 /**
@@ -102,7 +102,6 @@ int main(int argc, char** argv)
     glPolygonMode(GL_BACK,GL_LINE);
     //interpolate vertex colors over the triangles
 	glShadeModel(GL_SMOOTH);
-
 
 	// glut setup... to ignore
     glutReshapeFunc(reshape);
@@ -207,9 +206,68 @@ void keyboard(unsigned char key, int x, int y)
 	case 'L':
 		MyLightPositions.push_back(getCameraPosition());
 		break;
+
+	//Set last light to camera positions.
 	case 'l':
 		MyLightPositions[MyLightPositions.size()-1]=getCameraPosition();
 		break;
+
+	//Select previous light.
+	case 52:		//touch left arrow
+	{
+			if(MyLightPositions.size() == 0){
+				break;
+			}
+			else if(selectedLight == 0){
+				selectedLight = MyLightPositions.size()-1;
+				break;
+			}
+			else{
+				selectedLight--;
+				break;
+			}
+			break;
+	}
+
+	//Select next light.
+	case 54:		//touch right arrow
+	{
+			if(MyLightPositions.size() == 0){
+				break;
+			}
+			else if(selectedLight == MyLightPositions.size()-1){
+				selectedLight = 0;
+				break;
+			}
+			else{
+				selectedLight++;
+				break;
+			}
+			break;
+	}
+
+	//Move selected light to camera position.
+	case 50:		//touch down arrow
+		MyLightPositions[selectedLight]=getCameraPosition();
+		break;
+
+	//Remove selected light.
+	case 'x':
+	{
+		if(MyLightPositions.size() == 1){
+		    printf("You are not allowed to remove the last light in the scene.\n");
+		    fflush(stdout);
+		}
+		else{
+			MyLightPositions.erase(MyLightPositions.begin()+selectedLight);
+			if(selectedLight > 0)
+				selectedLight--;
+			else
+				selectedLight = MyLightPositions.size()-1;
+		}
+		break;
+	}
+
 	case 'r':
 	{
 		//Pressing r will launch the raytracing.
@@ -250,7 +308,7 @@ void keyboard(unsigned char key, int x, int y)
 				//launch raytracing for the given ray.
 				Vec3Df rgb = performRayTracing(origin, dest);
 				//store the result in an image 
-				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+				result.setPixel(x,y, RGBAValue(rgb[0], rgb[1], rgb[2], 1));
 			}
 
 		result.writeImage("result.ppm");
@@ -268,3 +326,4 @@ void keyboard(unsigned char key, int x, int y)
 	yourKeyboardFunc(key,x,y, testRayOrigin, testRayDestination);
 }
 
+//changeHighlight(old, new)
