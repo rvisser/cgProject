@@ -54,15 +54,8 @@ void yourDebugDraw()
 	glColor3f(1,1,1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	for (unsigned int i=0;i<MyLightPositions.size();++i){
-		if(i == selectedLight){
-			glColor3f(1,0,0);
-		}
+	for (int i=0;i<MyLightPositions.size();++i)
 		glVertex3fv(MyLightPositions[i].pointer());
-		if(i == selectedLight){
-			glColor3f(1,1,1);
-		}
-	}
 	glEnd();
 	glPopAttrib();//restore all GL attributes
 	//The Attrib commands maintain the state. 

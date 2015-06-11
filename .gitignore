@@ -33,6 +33,3 @@
 .cproject
 .project
 /.settings/
-
-#Generated raytraced image
-*.ppm
