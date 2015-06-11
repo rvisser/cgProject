@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include <lodepng.h>
-#include "iostream"
+#include "lodepng.h"
+#include <iostream>
 
 //Image class
 //This class can be used to write your final result to an image. 
