@@ -93,6 +93,24 @@ void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & t
 
 }
 
+Vec3Df calcDiffuse(const Vec3Df & colour, const Vec3Df & p){
+	//TODO: fix this function, or re-implement a better working variant...
+	Vec3Df result = Vec3Df(0,0,0);
+	for(std::vector<Vec3Df>::iterator l = MyLightPositions.begin(); l != MyLightPositions.end(); ++l){
+		//Translate point p back to world coordinates!
+
+		Vec3Df at;
+		int intersection;
+		getTriangleIntersection(p, *l, intersection, at);
+		if(intersection < 0){
+			//No intersection :)
+			result += colour;
+		}
+
+	}
+	return result;
+}
+
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
@@ -101,9 +119,14 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	int triangle;
 	Vec3Df p;
 	getTriangleIntersection(origin, dest, triangle, p);
-	if(triangle > 0){
+	if(triangle >= 0){
 		unsigned int triMat = MyMesh.triangleMaterials.at(triangle);
-		colour = MyMesh.materials.at(triMat).Kd();
+		Material m = MyMesh.materials.at(triMat);
+		Vec3Df diffuse = m.Kd();
+		Vec3Df ambient = m.Ka();
+		Vec3Df specular = m.Ks();
+		colour += diffuse;//Should be calcDiffuse(diffuse, p * 0.9999 + origin); if calcDiffuse is working
+
 	}
 
 	return colour;
