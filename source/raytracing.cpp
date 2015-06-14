@@ -50,13 +50,10 @@ inline void Barycentric(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c, float &u, float 
     u = 1.0f - v - w;
 }
 
-//return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
-{
-	//Default colour: black background
-	Vec3Df colour = Vec3Df(0,0,0);
-	////Initialise the minimum distance at quite a large value
+void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & triangle, Vec3Df & p){
+	//Initialise the minimum distance at quite a large value
 	float nearest = FLT_MAX;
+	triangle = -1;
 	for (unsigned int i=0;i<MyMesh.triangles.size();++i)
 	{
 		//Get all vertices and calculate edges, translated to the origin of the ray as new origin
@@ -78,7 +75,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 
 		//Calculate the hit parameter of the ray, and the point in (or next to) the triangle where the ray hits
 		float hit = D / Vec3Df::dotProduct(ray, n);
-		Vec3Df p = hit * ray;
+		p = hit * ray;
 
 		if(hit > 0 && hit < nearest){
 			//Make sure that p is inside the triangle using barycentric coordinates
@@ -87,10 +84,48 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 			if(a>=0 && a <= 1 && b>=0 && a + b <= 1)
 			{
 				nearest = hit;
-				unsigned int triMat = MyMesh.triangleMaterials.at(i);
-				colour = MyMesh.materials.at(triMat).Kd();
+				triangle = i;
+
 			}
 		}
+
+	}
+
+}
+
+Vec3Df calcDiffuse(const Vec3Df & colour, const Vec3Df & p){
+	//TODO: fix this function, or re-implement a better working variant...
+	Vec3Df result = Vec3Df(0,0,0);
+	for(std::vector<Vec3Df>::iterator l = MyLightPositions.begin(); l != MyLightPositions.end(); ++l){
+		//Translate point p back to world coordinates!
+
+		Vec3Df at;
+		int intersection;
+		getTriangleIntersection(p, *l, intersection, at);
+		if(intersection < 0){
+			//No intersection :)
+			result += colour;
+		}
+
+	}
+	return result;
+}
+
+//return the color of your pixel.
+Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
+{
+	//Default colour: black background
+	Vec3Df colour = Vec3Df(0,0,0);
+	int triangle;
+	Vec3Df p;
+	getTriangleIntersection(origin, dest, triangle, p);
+	if(triangle >= 0){
+		unsigned int triMat = MyMesh.triangleMaterials.at(triangle);
+		Material m = MyMesh.materials.at(triMat);
+		Vec3Df diffuse = m.Kd();
+		Vec3Df ambient = m.Ka();
+		Vec3Df specular = m.Ks();
+		colour += diffuse;//Should be calcDiffuse(diffuse, p * 0.9999 + origin); if calcDiffuse is working
 
 	}
 

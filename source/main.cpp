@@ -35,6 +35,8 @@ unsigned int WindowSize_Y = 800;  // resolution Y
 
 unsigned int selectedLight = 0;
 
+unsigned int sampling = 4; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
+
 
 /**
  * Main function, which is drawing an image (frame) on the screen
@@ -311,18 +313,27 @@ void keyboard(unsigned char key, int x, int y)
 			#pragma omp parallel for private(origin, dest)
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
+				Vec3Df comp = Vec3Df(0, 0, 0);
 				//produce the rays for each pixel, by interpolating 
 				//the four rays of the frustum corners.
-				float xscale=1.0f-float(x)/(WindowSize_X-1);
-				float yscale=1.0f-float(y)/(WindowSize_Y-1);
 
-				origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
-					(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
-				dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
-					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
+				//Use supersampling for a less pixelated result
+				for(unsigned xs = 0; xs < sampling; ++xs){
+					for(unsigned ys = 0; ys < sampling; ++ys){
+						float xscale=1.0f-float(x*sampling + xs)/(WindowSize_X*sampling-1);
+						float yscale=1.0f-float(y*sampling + ys)/(WindowSize_Y*sampling-1);
 
-				//launch raytracing for the given ray.
-				colors[WindowSize_X * y + x] = performRayTracing(origin, dest);
+						origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
+							(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
+						dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
+							(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
+
+						//launch raytracing for the given ray.
+						comp += performRayTracing(origin, dest);
+					}
+				}
+
+				colors[WindowSize_X * y + x] = comp / (sampling * sampling);
 				//store the result in an image 
 			}
 		}
