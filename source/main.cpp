@@ -11,6 +11,7 @@
 #include "imageWriter.h"
 
 
+
 //This is the main application
 //Most of the code in here, does not need to be modified.
 //It is enough to take a look at the function "drawFrame",
@@ -32,7 +33,7 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 800;  // resolution X
 unsigned int WindowSize_Y = 800;  // resolution Y
 
-
+unsigned int selectedLight = 0;
 
 
 /**
@@ -102,7 +103,6 @@ int main(int argc, char** argv)
     glPolygonMode(GL_BACK,GL_LINE);
     //interpolate vertex colors over the triangles
 	glShadeModel(GL_SMOOTH);
-
 
 	// glut setup... to ignore
     glutReshapeFunc(reshape);
@@ -207,9 +207,75 @@ void keyboard(unsigned char key, int x, int y)
 	case 'L':
 		MyLightPositions.push_back(getCameraPosition());
 		break;
+
+	//Set last light to camera positions.
 	case 'l':
 		MyLightPositions[MyLightPositions.size()-1]=getCameraPosition();
 		break;
+
+	//Select previous light.
+	case 52:		//touch left arrow
+	{
+			if(MyLightPositions.size() == 0){
+				break;
+			}
+			else if(selectedLight == 0){
+				selectedLight = MyLightPositions.size()-1;
+				break;
+			}
+			else{
+				selectedLight--;
+				break;
+			}
+			break;
+	}
+
+	//Select next light.
+	case 54:		//touch right arrow
+	{
+			if(MyLightPositions.size() == 0){
+				break;
+			}
+			else if(selectedLight == MyLightPositions.size()-1){
+				selectedLight = 0;
+				break;
+			}
+			else{
+				selectedLight++;
+				break;
+			}
+			break;
+	}
+
+	//Move selected light to camera position.
+	case 50:		//touch down arrow
+		MyLightPositions[selectedLight]=getCameraPosition();
+		break;
+
+	//Remove selected light.
+	case 'x':
+	{
+		if(MyLightPositions.size() == 1){
+		    printf("You are not allowed to remove the last light in the scene.\n");
+		    fflush(stdout);
+		}
+		else{
+			MyLightPositions.erase(MyLightPositions.begin()+selectedLight);
+			if(selectedLight > 0)
+				selectedLight--;
+			else
+				selectedLight = MyLightPositions.size()-1;
+		}
+		break;
+	}
+	case 's':{
+		//Trace single ray
+		Vec3Df testRayOrigin, testRayDestination;
+		produceRay(x, y, &testRayOrigin, &testRayDestination);
+		performRayTracing(testRayOrigin, testRayDestination);
+		break;
+	}
+
 	case 'r':
 	{
 		//Pressing r will launch the raytracing.
@@ -233,8 +299,16 @@ void keyboard(unsigned char key, int x, int y)
 		produceRay(WindowSize_X-1,0, &origin10, &dest10);
 		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
 
-		
+		//Vec3Df colors [WindowSize_Y * WindowSize_X] = {};
+		//array<Vec3Df, WindowSize_Y * WindowSize_X] colors = {};
+		Vec3Df *colors;
+		colors = new Vec3Df[WindowSize_Y * WindowSize_X];
+
+
 		for (unsigned int y=0; y<WindowSize_Y;++y)
+		{
+			std::cout << "Progress: " << y << " of " << WindowSize_Y << std::endl;
+			#pragma omp parallel for private(origin, dest)
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
 				//produce the rays for each pixel, by interpolating 
@@ -248,12 +322,16 @@ void keyboard(unsigned char key, int x, int y)
 					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
 				//launch raytracing for the given ray.
-				Vec3Df rgb = performRayTracing(origin, dest);
+				colors[WindowSize_X * y + x] = performRayTracing(origin, dest);
 				//store the result in an image 
-				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
 			}
-
+		}
+		for (unsigned int y=0; y<WindowSize_Y;++y)
+			for (unsigned int x=0; x<WindowSize_X;++x)
+				result.setPixel(x,y, RGBAValue(colors[WindowSize_X * y + x][0], colors[WindowSize_X * y + x][1], colors[WindowSize_X * y + x][2], 1));
+		delete [] colors;
 		result.writeImage("result.ppm");
+		cout<<"Raytracing finished"<<endl;
 		break;
 	}
 	case 27:     // touche ESC
@@ -268,3 +346,4 @@ void keyboard(unsigned char key, int x, int y)
 	yourKeyboardFunc(key,x,y, testRayOrigin, testRayDestination);
 }
 
+//changeHighlight(old, new)

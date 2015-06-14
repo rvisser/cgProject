@@ -4,7 +4,10 @@
 #endif
 #include <GL/glut.h>
 #include "raytracing.h"
+#include <omp.h>
+#include <float.h>
 
+#define dot(u,v)	Vec3Df::dotProduct(u, v)
 
 //temporary variables
 //these are only used to illustrate 
@@ -23,7 +26,8 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("dodgeColorTest.obj", true);
+	//OR make sure the .obj is located in the working directory
+    MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -32,10 +36,65 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 }
 
+inline void Barycentric(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c, float &u, float &v, float &w)
+{
+	Vec3Df v0 = b - a, v1 = c - a, v2 = p - a;
+    float d00 = Vec3Df::dotProduct(v0, v0);
+    float d01 = Vec3Df::dotProduct(v0, v1);
+    float d11 = Vec3Df::dotProduct(v1, v1);
+    float d20 = Vec3Df::dotProduct(v2, v0);
+    float d21 = Vec3Df::dotProduct(v2, v1);
+    float denom = d00 * d11 - d01 * d01;
+    v = (d11 * d20 - d01 * d21) / denom;
+    w = (d00 * d21 - d01 * d20) / denom;
+    u = 1.0f - v - w;
+}
+
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	return Vec3Df(dest[0],dest[1],dest[2]);
+	//Default colour: black background
+	Vec3Df colour = Vec3Df(0,0,0);
+	////Initialise the minimum distance at quite a large value
+	float nearest = FLT_MAX;
+	for (unsigned int i=0;i<MyMesh.triangles.size();++i)
+	{
+		//Get all vertices and calculate edges, translated to the origin of the ray as new origin
+		Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
+		Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
+		Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
+
+		Vec3Df e1 = v1 - v3;
+		Vec3Df e2 = v2 - v3;
+
+		Vec3Df ray = dest - origin;
+
+		//Calculate the normal on the plane spanned by the edges
+		Vec3Df n = Vec3Df::crossProduct(e1, e2);
+		n.normalize();
+
+		//Distance from origin to the plane
+		float D = Vec3Df::dotProduct(v1, n);
+
+		//Calculate the hit parameter of the ray, and the point in (or next to) the triangle where the ray hits
+		float hit = D / Vec3Df::dotProduct(ray, n);
+		Vec3Df p = hit * ray;
+
+		if(hit > 0 && hit < nearest){
+			//Make sure that p is inside the triangle using barycentric coordinates
+			float a, b, ab;
+			Barycentric(p, v1, v2, v3, a, b, ab);
+			if(a>=0 && a <= 1 && b>=0 && a + b <= 1)
+			{
+				nearest = hit;
+				unsigned int triMat = MyMesh.triangleMaterials.at(i);
+				colour = MyMesh.materials.at(triMat).Kd();
+			}
+		}
+
+	}
+
+	return colour;
 }
 
 
@@ -54,8 +113,15 @@ void yourDebugDraw()
 	glColor3f(1,1,1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	for (int i=0;i<MyLightPositions.size();++i)
+	for (unsigned int i=0;i<MyLightPositions.size();++i){
+		if(i == selectedLight){
+			glColor3f(1,0,0);
+		}
 		glVertex3fv(MyLightPositions[i].pointer());
+		if(i == selectedLight){
+			glColor3f(1,1,1);
+		}
+	}
 	glEnd();
 	glPopAttrib();//restore all GL attributes
 	//The Attrib commands maintain the state. 
