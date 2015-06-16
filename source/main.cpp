@@ -29,7 +29,7 @@ Vec3Df MyCameraPosition;
 std::vector<Vec3Df> MyLightPositions;
 
 //Main mesh 
-Mesh MyMesh; 
+Mesh MyMesh;
 
 unsigned int WindowSize_X = 800;  // resolution X
 unsigned int WindowSize_Y = 800;  // resolution Y
@@ -73,7 +73,7 @@ int main(int argc, char** argv)
     // positioning and size of window
     glutInitWindowPosition(200, 100);
     glutInitWindowSize(WindowSize_X,WindowSize_Y);
-    glutCreateWindow(argv[0]);	
+    glutCreateWindow(argv[0]);
 
     //initialize viewpoint
     glMatrixMode(GL_MODELVIEW);
@@ -96,10 +96,10 @@ int main(int argc, char** argv)
     //clear color of the background is black.
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 
-	
+
 	// Activate rendering modes
     //activate depth test
-	glEnable( GL_DEPTH_TEST ); 
+	glEnable( GL_DEPTH_TEST );
     //draw front-facing triangles filled
 	//and back-facing triangles as wires
     glPolygonMode(GL_FRONT,GL_FILL);
@@ -118,10 +118,10 @@ int main(int argc, char** argv)
 
 	init();
 
-    
+
 	//main loop for glut... this just runs your application
     glutMainLoop();
-        
+
     return 0;  // execution never reaches this point
 }
 
@@ -145,8 +145,8 @@ int main(int argc, char** argv)
 	glPushAttrib(GL_ALL_ATTRIB_BITS);//store GL state
     // Effacer tout
     glClear( GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT); // clear image
-    
-    glLoadIdentity();  
+
+    glLoadIdentity();
 
     tbVisuTransform(); // init trackball
 
@@ -179,7 +179,7 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 		int y_new = viewport[3] - y_I;
 
 		double x, y, z;
-		
+
 		gluUnProject(x_I, y_new, 0, modelview, projection, viewport, &x, &y, &z);
 		origin->p[0]=float(x);
 		origin->p[1]=float(y);
@@ -283,11 +283,11 @@ void keyboard(unsigned char key, int x, int y)
 	{
 		//Pressing r will launch the raytracing.
 		cout<<"Raytracing"<<endl;
-				
+
 
 		//Setup an image with the size of the current image.
 		Image result(WindowSize_X,WindowSize_Y);
-		
+
 		//produce the rays for each pixel, by first computing
 		//the rays for the corners of the frustum.
 		Vec3Df origin00, dest00;
@@ -357,7 +357,7 @@ void keyboard(unsigned char key, int x, int y)
         exit(0);
     }
 
-	
+
 	//produce the ray for the current mouse position
 	Vec3Df testRayOrigin, testRayDestination;
 	produceRay(x, y, &testRayOrigin, &testRayDestination);
