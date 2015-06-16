@@ -99,17 +99,26 @@ void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & t
 }
 
 //Calculate the actual diffuse colour, given the diffuse colour of the material and a ray hit point p
-Vec3Df calcDiffuse(const Vec3Df & colour, const Vec3Df & p){
-	//TODO: fix this function, or re-implement a better working variant...
+Vec3Df calcDiffuse(const Vec3Df & objectColour, const Vec3Df & p){
+	//TODO: check of any of this is correct
 	Vec3Df result = Vec3Df(0,0,0);
 	for(std::vector<Vec3Df>::iterator l = MyLightPositions.begin(); l != MyLightPositions.end(); ++l){
+		//Translate point p back to world coordinates!
+		//Not sure if I should, this seems to work
 
 		Vec3Df at;
 		int intersection;
 		getTriangleIntersection(p, *l, intersection, at);
 		if(intersection < 0){
 			//No intersection :)
-			result += colour;
+			result += objectColour;
+		}
+		else {
+			Vec3Df lVector = Vec3Df(l->p) - p;
+			lVector.normalize();
+			int lightDiffuse = 1; //not sure if 1
+
+			result += lightDiffuse * objectColour * dot(lVector, p);
 		}
 
 	}
