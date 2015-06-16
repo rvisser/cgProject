@@ -109,7 +109,8 @@ Vec3Df calcDiffuse(const Vec3Df & colour, const Vec3Df & p){
 		getTriangleIntersection(p, *l, intersection, at);
 		if(intersection < 0){
 			//No intersection :)
-			result += colour;
+			Vec3Df dist = p-*l;
+			result += colour*(10/dot(dist,dist));
 		}
 
 	}
