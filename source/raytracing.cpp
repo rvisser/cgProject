@@ -14,6 +14,8 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
+float lightstrength = 0.9f;
+float ambientstrenght = 0.5f;
 
 
 //use this function for any preprocessing of the mesh.
@@ -34,10 +36,30 @@ void init()
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
 	MyLightPositions.push_back(MyCameraPosition);
+	MyLightPositions.push_back(Vec3Df(1.4,1.4,1.4));
 }
 
-inline void Barycentric(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c, float &u, float &v, float &w)
+Vec3Df getNormal(const Vec3Df & v1, const Vec3Df & v2, const Vec3Df & v3){
+	Vec3Df e1 = v1 - v3;
+	Vec3Df e2 = v2 - v3;
+
+	//Calculate the normal on the plane spanned by the edges
+	Vec3Df n = Vec3Df::crossProduct(e1, e2);
+	n.normalize();
+	return n;
+}
+
+inline float PlaneTest(Vec3Df ray, Vec3Df n, Vec3Df v1, Vec3Df v2, Vec3Df v3) {
+	//Distance from origin to the plane
+	float dist = Vec3Df::dotProduct(v1, n);
+
+	//Calculate the hit parameter of the ray, and the point in (or next to) the triangle where the ray hits
+	return dist / Vec3Df::dotProduct(ray, n);
+}
+
+inline bool TriangleTest(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c)
 {
+	float u, v, w;
 	Vec3Df v0 = b - a, v1 = c - a, v2 = p - a;
     float d00 = Vec3Df::dotProduct(v0, v0);
     float d01 = Vec3Df::dotProduct(v0, v1);
@@ -48,14 +70,17 @@ inline void Barycentric(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c, float &u, float 
     v = (d11 * d20 - d01 * d21) / denom;
     w = (d00 * d21 - d01 * d20) / denom;
     u = 1.0f - v - w;
+    return (u>=0 && u <= 1 && v>=0 && u + v <= 1);
 }
+
+
 
 /*
  * Given a ray (origin -> dest), calculate a possible hit point point in the triangle at index triangle in the mesh.
  * Sets triangle to -1 if no intersection with a triangle and this ray is found
  */
-void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & triangle, Vec3Df & point){
-	//Initialise the minimum distance at quite a large value
+void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & triangle, Vec3Df & point, Vec3Df & normal){
+	//Initialize the minimum distance at quite a large value
 	float nearest = FLT_MAX;
 	triangle = -1;
 	for (unsigned int i=0;i<MyMesh.triangles.size();++i)
@@ -64,33 +89,16 @@ void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & t
 		Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
 		Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
 		Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
-
-		Vec3Df e1 = v1 - v3;
-		Vec3Df e2 = v2 - v3;
-
 		Vec3Df ray = dest - origin;
-
-		//Calculate the normal on the plane spanned by the edges
-		Vec3Df n = Vec3Df::crossProduct(e1, e2);
-		n.normalize();
-
-		//Distance from origin to the plane
-		float D = Vec3Df::dotProduct(v1, n);
-
-		//Calculate the hit parameter of the ray, and the point in (or next to) the triangle where the ray hits
-		float hit = D / Vec3Df::dotProduct(ray, n);
-		Vec3Df p = hit * ray;
-
+		Vec3Df norm = getNormal(v1,v2,v3);
+		float hit = PlaneTest(ray, norm, v1, v2, v3);
 		if(hit > 0 && hit < nearest){
 			//Make sure that p is inside the triangle using barycentric coordinates
-			float a, b, ab;
-			Barycentric(p, v1, v2, v3, a, b, ab);
-			if(a>=0 && a <= 1 && b>=0 && a + b <= 1)
-			{
-				point = p;
+			if (TriangleTest(hit * ray, v1, v2, v3))	{
+				point = hit * ray;
 				nearest = hit;
 				triangle = i;
-
+				normal = norm;
 			}
 		}
 
@@ -99,31 +107,38 @@ void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & t
 }
 
 //Calculate the actual diffuse colour, given the diffuse colour of the material and a ray hit point p
-Vec3Df calcDiffuse(const Vec3Df & colour, const Vec3Df & p){
-	//TODO: fix this function, or re-implement a better working variant...
+Vec3Df calcDiffuse(const Vec3Df & objectColour, const Vec3Df & p, const Vec3Df & normal){
+	//TODO: check of any of this is correct
 	Vec3Df result = Vec3Df(0,0,0);
 	for(std::vector<Vec3Df>::iterator l = MyLightPositions.begin(); l != MyLightPositions.end(); ++l){
-
-		Vec3Df at;
+		//Translate point p back to world coordinates!
+		//Not sure if I should, this seems to work
+		Vec3Df at, norm;
 		int intersection;
-		getTriangleIntersection(p, *l, intersection, at);
+		getTriangleIntersection(p, *l, intersection, at, norm);
 		if(intersection < 0){
 			//No intersection :)
-			result += colour;
+			Vec3Df lVector = Vec3Df(l->p) - p;
+			lVector.normalize();
+			float lightDiffuse = lightstrength/dot(*l-p,*l-p); //not sure if 1
+			result += dot(lVector, normal) * objectColour * lightDiffuse;
 		}
-
 	}
 	return result;
+}
+
+Vec3Df calcAmbient(const Vec3Df & objectColour, const Vec3Df & p, const Vec3Df & normal){
+	return objectColour*ambientstrenght;
 }
 
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	//Default colour: black background
-	Vec3Df colour = Vec3Df(0,0,0);
+	//Default color: black background
+	Vec3Df color = Vec3Df(0,0,0);
 	int triangle;
-	Vec3Df p;
-	getTriangleIntersection(origin, dest, triangle, p);
+	Vec3Df p, norm;
+	getTriangleIntersection(origin, dest, triangle, p, norm);
 	if(triangle >= 0){
 		unsigned int triMat = MyMesh.triangleMaterials.at(triangle);
 		Material m = MyMesh.materials.at(triMat);
@@ -131,11 +146,12 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3Df ambient = m.Ka();
 		Vec3Df specular = m.Ks();
 		//Translate point p back to world coordinates!
-		colour += calcDiffuse(diffuse, p * 0.9999 + origin);// if calcDiffuse is working
+		color += calcDiffuse(diffuse, p * 0.9999 + origin, norm);// if calcDiffuse is working
+		color += calcAmbient(diffuse, p, norm);
 
 	}
 
-	return colour;
+	return color;
 }
 
 

@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 #include <stdlib.h>
 #include <math.h>
+#include <algorithm>
 #include <assert.h>
 #include "raytracing.h"
 #include "mesh.h"
@@ -35,7 +36,7 @@ unsigned int WindowSize_Y = 800;  // resolution Y
 
 unsigned int selectedLight = 0;
 
-unsigned int sampling = 4; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
+unsigned int sampling = 1; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
 
 
 /**
@@ -337,9 +338,16 @@ void keyboard(unsigned char key, int x, int y)
 				//store the result in an image 
 			}
 		}
+		float maxintensity = 1;
+		for (unsigned int y=0; y<WindowSize_Y;++y)
+			for (unsigned int x=0; x<WindowSize_X;++x){
+				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][0]);
+				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][1]);
+				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][2]);
+			}
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 			for (unsigned int x=0; x<WindowSize_X;++x)
-				result.setPixel(x,y, RGBAValue(colors[WindowSize_X * y + x][0], colors[WindowSize_X * y + x][1], colors[WindowSize_X * y + x][2], 1));
+				result.setPixel(x,y, RGBAValue(colors[WindowSize_X * y + x][0]/maxintensity, colors[WindowSize_X * y + x][1]/maxintensity, colors[WindowSize_X * y + x][2]/maxintensity, 1));
 		delete [] colors;
 		result.writeImage("result.ppm");
 		cout<<"Raytracing finished"<<endl;
