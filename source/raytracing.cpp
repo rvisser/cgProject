@@ -50,7 +50,11 @@ inline void Barycentric(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c, float &u, float 
     u = 1.0f - v - w;
 }
 
-void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & triangle, Vec3Df & p){
+/*
+ * Given a ray (origin -> dest), calculate a possible hit point point in the triangle at index triangle in the mesh.
+ * Sets triangle to -1 if no intersection with a triangle and this ray is found
+ */
+void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & triangle, Vec3Df & point){
 	//Initialise the minimum distance at quite a large value
 	float nearest = FLT_MAX;
 	triangle = -1;
@@ -75,7 +79,7 @@ void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & t
 
 		//Calculate the hit parameter of the ray, and the point in (or next to) the triangle where the ray hits
 		float hit = D / Vec3Df::dotProduct(ray, n);
-		p = hit * ray;
+		Vec3Df p = hit * ray;
 
 		if(hit > 0 && hit < nearest){
 			//Make sure that p is inside the triangle using barycentric coordinates
@@ -83,6 +87,7 @@ void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & t
 			Barycentric(p, v1, v2, v3, a, b, ab);
 			if(a>=0 && a <= 1 && b>=0 && a + b <= 1)
 			{
+				point = p;
 				nearest = hit;
 				triangle = i;
 
@@ -93,11 +98,11 @@ void getTriangleIntersection(const Vec3Df & origin, const Vec3Df & dest, int & t
 
 }
 
+//Calculate the actual diffuse colour, given the diffuse colour of the material and a ray hit point p
 Vec3Df calcDiffuse(const Vec3Df & colour, const Vec3Df & p){
 	//TODO: fix this function, or re-implement a better working variant...
 	Vec3Df result = Vec3Df(0,0,0);
 	for(std::vector<Vec3Df>::iterator l = MyLightPositions.begin(); l != MyLightPositions.end(); ++l){
-		//Translate point p back to world coordinates!
 
 		Vec3Df at;
 		int intersection;
@@ -125,7 +130,8 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3Df diffuse = m.Kd();
 		Vec3Df ambient = m.Ka();
 		Vec3Df specular = m.Ks();
-		colour += diffuse;//Should be calcDiffuse(diffuse, p * 0.9999 + origin); if calcDiffuse is working
+		//Translate point p back to world coordinates!
+		colour += calcDiffuse(diffuse, p * 0.9999 + origin);// if calcDiffuse is working
 
 	}
 
