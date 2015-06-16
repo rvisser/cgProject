@@ -338,7 +338,7 @@ void keyboard(unsigned char key, int x, int y)
 				//store the result in an image 
 			}
 		}
-		float maxintensity = 0;
+		float maxintensity = 1;
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 			for (unsigned int x=0; x<WindowSize_X;++x){
 				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][0]);
