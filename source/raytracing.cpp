@@ -14,8 +14,9 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-float lightstrength = 0.9f;
+float lightstrength = 2.0f;
 float ambientstrenght = 0.5f;
+float lightscale = 0.8f;
 
 //use this function for any preprocessing of the mesh.
 void init() {
@@ -28,7 +29,7 @@ void init() {
 	//otherwise the application will not load properly
 	//OR make sure the .obj is located in the working directory
 	//MyMesh.loadMesh("cube.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -41,7 +42,7 @@ void init() {
 /*
  * given 3 points v1, v2 and v3 returns the normal of the plane spanned by these points
  */
-Vec3Df getNormal(const Vec3Df & v1, const Vec3Df & v2, const Vec3Df & v3) {
+inline Vec3Df getNormal(const Vec3Df & v1, const Vec3Df & v2, const Vec3Df & v3) {
 	Vec3Df e1 = v1 - v3;
 	Vec3Df e2 = v2 - v3;
 
@@ -141,12 +142,11 @@ Vec3Df calcDiffuse(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & 
 		//Translate point p back to world coordinates!
 		//Not sure if I should, this seems to work
 		Vec3Df at, norm;
-		int intersection;
 		if (!testRay(p, *l)) {
 			//No intersection :)
 			Vec3Df lVector = Vec3Df(l->p) - p;
 			lVector.normalize();
-			float lightDiffuse = lightstrength / dot(*l - p, *l - p); //not sure if 1
+			float lightDiffuse = lightstrength / 1+dot((*l - p)/lightscale, (*l - p)/lightscale); //not sure if 1
 			result += dot(lVector, normal)* objectColor * lightDiffuse;
 		}
 	}
