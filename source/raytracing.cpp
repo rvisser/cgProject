@@ -27,7 +27,8 @@ void init() {
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
 	//OR make sure the .obj is located in the working directory
-	MyMesh.loadMesh("cube.obj", true);
+	//MyMesh.loadMesh("cube.obj", true);
+	MyMesh.loadMesh("dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -84,8 +85,7 @@ inline bool TriangleTest(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c) {
  * Given a ray (origin -> dest), calculates the first hit point to a triangle at index triangle in the mesh.
  * Sets triangle to -1 if no intersection with a triangle and this ray is found
  */
-void castRay(const Vec3Df & origin, const Vec3Df & dest,
-	int & triangle, Vec3Df & point, Vec3Df & normal) {
+void castRay(const Vec3Df & origin, const Vec3Df & dest, int & triangle, Vec3Df & point, Vec3Df & normal) {
 	//Initialize the minimum distance at quite a large value
 	float nearest = FLT_MAX;
 	triangle = -1;
@@ -129,9 +129,10 @@ bool testRay(const Vec3Df & origin, const Vec3Df & dest) {
 			}
 		}
 	}
+	return false;
 }
 
-//Calculate the actual diffuse colour, given the diffuse color of the material and a ray hit point p
+//Calculate the actual diffuse color, given the diffuse color of the material and a ray hit point p
 Vec3Df calcDiffuse(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & normal) {
 	//TODO: check of any of this is correct
 	Vec3Df result = Vec3Df(0, 0, 0);
@@ -155,8 +156,16 @@ Vec3Df calcDiffuse(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & 
 /*
  * adds the ambient light factor to obtain the ambient diffuse color
  */
-Vec3Df calcAmbient(const Vec3Df & objectColour, const Vec3Df & p, const Vec3Df & normal) {
-	return objectColour * ambientstrenght;
+Vec3Df calcAmbient(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & normal) {
+	return objectColor * ambientstrenght;
+}
+
+/*
+ * given a ray, point and normal reflects the ray and gives the result back as a reflecting color.
+ */
+Vec3Df calcReflect(const Vec3Df & objectColor, const Vec3Df & p, Vec3Df ray, const Vec3Df & normal) {
+	ray.normalize();//doesn't work yet
+	return objectColor*performRayTracing(p,p + ray - 2*dot(normal,ray)*normal);
 }
 
 //return the color of your pixel.
@@ -176,7 +185,6 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest) {
 		color += calcDiffuse(diffuse, p * 0.9999 + origin, norm); // if calcDiffuse is working
 		color += calcAmbient(diffuse, p, norm);
 		color += Vec3Df(0,0,0);//calcSpecular;
-
 	}
 
 	return color;
