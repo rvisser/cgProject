@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 #include <stdlib.h>
 #include <math.h>
+#include <algorithm>
 #include <assert.h>
 #include "raytracing.h"
 #include "mesh.h"
@@ -28,14 +29,14 @@ Vec3Df MyCameraPosition;
 std::vector<Vec3Df> MyLightPositions;
 
 //Main mesh 
-Mesh MyMesh; 
+Mesh MyMesh;
 
 unsigned int WindowSize_X = 800;  // resolution X
 unsigned int WindowSize_Y = 800;  // resolution Y
 
 unsigned int selectedLight = 0;
 
-unsigned int sampling = 4; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
+unsigned int sampling = 1; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
 
 
 /**
@@ -72,7 +73,7 @@ int main(int argc, char** argv)
     // positioning and size of window
     glutInitWindowPosition(200, 100);
     glutInitWindowSize(WindowSize_X,WindowSize_Y);
-    glutCreateWindow(argv[0]);	
+    glutCreateWindow(argv[0]);
 
     //initialize viewpoint
     glMatrixMode(GL_MODELVIEW);
@@ -95,10 +96,10 @@ int main(int argc, char** argv)
     //clear color of the background is black.
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 
-	
+
 	// Activate rendering modes
     //activate depth test
-	glEnable( GL_DEPTH_TEST ); 
+	glEnable( GL_DEPTH_TEST );
     //draw front-facing triangles filled
 	//and back-facing triangles as wires
     glPolygonMode(GL_FRONT,GL_FILL);
@@ -117,10 +118,10 @@ int main(int argc, char** argv)
 
 	init();
 
-    
+
 	//main loop for glut... this just runs your application
     glutMainLoop();
-        
+
     return 0;  // execution never reaches this point
 }
 
@@ -144,8 +145,8 @@ int main(int argc, char** argv)
 	glPushAttrib(GL_ALL_ATTRIB_BITS);//store GL state
     // Effacer tout
     glClear( GL_COLOR_BUFFER_BIT  | GL_DEPTH_BUFFER_BIT); // clear image
-    
-    glLoadIdentity();  
+
+    glLoadIdentity();
 
     tbVisuTransform(); // init trackball
 
@@ -178,7 +179,7 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 		int y_new = viewport[3] - y_I;
 
 		double x, y, z;
-		
+
 		gluUnProject(x_I, y_new, 0, modelview, projection, viewport, &x, &y, &z);
 		origin->p[0]=float(x);
 		origin->p[1]=float(y);
@@ -282,11 +283,11 @@ void keyboard(unsigned char key, int x, int y)
 	{
 		//Pressing r will launch the raytracing.
 		cout<<"Raytracing"<<endl;
-				
+
 
 		//Setup an image with the size of the current image.
 		Image result(WindowSize_X,WindowSize_Y);
-		
+
 		//produce the rays for each pixel, by first computing
 		//the rays for the corners of the frustum.
 		Vec3Df origin00, dest00;
@@ -337,9 +338,16 @@ void keyboard(unsigned char key, int x, int y)
 				//store the result in an image 
 			}
 		}
+		float maxintensity = 1;
+		for (unsigned int y=0; y<WindowSize_Y;++y)
+			for (unsigned int x=0; x<WindowSize_X;++x){
+				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][0]);
+				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][1]);
+				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][2]);
+			}
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 			for (unsigned int x=0; x<WindowSize_X;++x)
-				result.setPixel(x,y, RGBAValue(colors[WindowSize_X * y + x][0], colors[WindowSize_X * y + x][1], colors[WindowSize_X * y + x][2], 1));
+				result.setPixel(x,y, RGBAValue(colors[WindowSize_X * y + x][0]/maxintensity, colors[WindowSize_X * y + x][1]/maxintensity, colors[WindowSize_X * y + x][2]/maxintensity, 1));
 		delete [] colors;
 		result.writeImage("result.ppm");
 		cout<<"Raytracing finished"<<endl;
@@ -349,7 +357,7 @@ void keyboard(unsigned char key, int x, int y)
         exit(0);
     }
 
-	
+
 	//produce the ray for the current mouse position
 	Vec3Df testRayOrigin, testRayDestination;
 	produceRay(x, y, &testRayOrigin, &testRayDestination);
