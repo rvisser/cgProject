@@ -30,12 +30,12 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh;
 
-unsigned int WindowSize_X = 500;  // resolution X
-unsigned int WindowSize_Y = 500;  // resolution Y
+unsigned int WindowSize_X = 1000;  // resolution X
+unsigned int WindowSize_Y = 1000;  // resolution Y
 
 unsigned int selectedLight = 0;
 
-unsigned int sampling = 1; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
+unsigned int sampling = 2; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
 
 
 /**
@@ -102,7 +102,7 @@ int main(int argc, char** argv)
     //draw front-facing triangles filled
 	//and back-facing triangles as wires
     glPolygonMode(GL_FRONT,GL_FILL);
-    glPolygonMode(GL_BACK,GL_LINE);
+    glPolygonMode(GL_BACK,GL_FILL);
     //interpolate vertex colors over the triangles
 	glShadeModel(GL_SMOOTH);
 
