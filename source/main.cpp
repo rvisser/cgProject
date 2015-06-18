@@ -4,7 +4,6 @@
 #include <GL/glut.h>
 #include <stdlib.h>
 #include <math.h>
-#include <algorithm>
 #include <assert.h>
 #include "raytracing.h"
 #include "mesh.h"
@@ -31,8 +30,8 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh;
 
-unsigned int WindowSize_X = 800;  // resolution X
-unsigned int WindowSize_Y = 800;  // resolution Y
+unsigned int WindowSize_X = 500;  // resolution X
+unsigned int WindowSize_Y = 500;  // resolution Y
 
 unsigned int selectedLight = 0;
 
