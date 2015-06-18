@@ -170,15 +170,16 @@ Vec3Df calcAmbient(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & 
 /*
  * given a ray, point and normal reflects the ray and gives the result back as a reflecting color.
  */
-Vec3Df calcReflect(const Vec3Df & objectColor, const Vec3Df & p, Vec3Df ray, const Vec3Df & normal) {
-	ray.normalize();//doesn't work yet
-	return objectColor*performRayTracing(p,p + ray - 2*dot(normal,ray)*normal);
+Vec3Df calcReflect(const Vec3Df & objectColor, const Vec3Df & p, Vec3Df ray, const Vec3Df & normal, unsigned int bounces) {
+	ray.normalize();
+	return objectColor*performRayTracing(p,p + ray - 2*dot(normal,ray)*normal, bounces);
 }
 
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest) {
+Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, unsigned int bounces) {
 	//Default color: black background
 	Vec3Df color = Vec3Df(0, 0, 0);
+	if (!bounces) return color;
 	int triangle;
 	Vec3Df p, norm;
 	castRay(origin, dest, triangle, p, norm);
@@ -192,6 +193,9 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest) {
 		color += calcDiffuse(diffuse, p * 0.9999 + origin, norm); // if calcDiffuse is working
 		color += calcAmbient(diffuse, p, norm);
 		color += Vec3Df(0,0,0);//calcSpecular;
+		/*if (diffuse[1]>0.8,diffuse[1]>0.8,diffuse[2]>0.8) {
+			color += calcReflect(Vec3Df(1,1,1),p * 0.9999 + origin,dest-origin,norm,--bounces);
+		}*///uncomment this to make white surfaces reflective
 	}
 
 	return color;
