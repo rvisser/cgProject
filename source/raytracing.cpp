@@ -14,9 +14,9 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-float lightstrength = 2.0f;
-float ambientstrenght = 0.5f;
-float lightscale = 0.8f;
+float lightstrength = 100.0f;
+float ambientstrenght = 0.2f;
+float lightscale = 1.0f;
 
 //use this function for any preprocessing of the mesh.
 void init() {
@@ -29,14 +29,14 @@ void init() {
 	//otherwise the application will not load properly
 	//OR make sure the .obj is located in the working directory
 	//MyMesh.loadMesh("cube.obj", true);
-	MyMesh.loadMesh("cube.obj", true);
+	MyMesh.loadMesh("test.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
 	MyLightPositions.push_back(MyCameraPosition);
-	MyLightPositions.push_back(Vec3Df(1.4, 1.4, 1.4));
+	MyLightPositions.push_back(Vec3Df(0.5, 0.0, -0.5));
 }
 
 /*
@@ -121,12 +121,13 @@ bool testRay(const Vec3Df & origin, const Vec3Df & dest) {
 		Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
 		Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
 		Vec3Df ray = dest - origin;
+		float dist = ray.getLength();
 		Vec3Df norm = getNormal(v1, v2, v3);
 		float hit = PlaneTest(ray, norm, v1);
 		if (hit > 0) {
 			//Make sure that p is inside the triangle using barycentric coordinates
 			if (TriangleTest(hit * ray, v1, v2, v3)) {
-				return true;
+				if (hit * ray.getLength()<dist) return true;
 			}
 		}
 	}
@@ -146,7 +147,14 @@ Vec3Df calcDiffuse(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & 
 			//No intersection :)
 			Vec3Df lVector = Vec3Df(l->p) - p;
 			lVector.normalize();
-			float lightDiffuse = lightstrength / 1+dot((*l - p)/lightscale, (*l - p)/lightscale); //not sure if 1
+			/*
+			 * calculates the strength of the light with inverse-square falloff
+			 * at distance 0 the light intensity is 1.0 I
+			 * at distance 1 the light intensity is 1/4 I
+			 * at distance 2 the light intensity is 1/9 I
+			 */
+			Vec3Df lightDistance = (*l - p);
+			float lightDiffuse = lightstrength / pow(lightDistance.getLength()+1,2);
 			result += dot(lVector, normal)* objectColor * lightDiffuse;
 		}
 	}

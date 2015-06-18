@@ -1,0 +1,72 @@
+# Blender MTL File: 'None'
+# Material Count: 7
+
+newmtl buffy-blue
+Ns 90.196078
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.409600
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ..\textures\xan
+
+newmtl buffy-gray
+Ns 90.196078
+Ka 0.000000 0.000000 0.000000
+Kd 0.256000 0.256000 0.256000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ..\textures\buffy256.ppm
+
+newmtl buffy-green
+Ns 90.196078
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.409600 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ..\textures\willow256.ppm
+
+newmtl buffy-purple
+Ns 90.196078
+Ka 0.000000 0.000000 0.000000
+Kd 0.409600 0.000000 0.163864
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ..\textures\willow256.ppm
+
+newmtl buffy-red
+Ns 90.196078
+Ka 0.000000 0.000000 0.000000
+Kd 0.409600 0.000000 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ..\textures\angel256.ppm
+
+newmtl buffy-turk
+Ns 90.196078
+Ka 0.000000 0.000000 0.000000
+Kd 0.073431 0.672962 0.297460
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ..\\textures\\xan
+
+newmtl buffy-yellow
+Ns 90.196078
+Ka 0.000000 0.000000 0.000000
+Kd 0.409600 0.320479 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ..\textures\xan
