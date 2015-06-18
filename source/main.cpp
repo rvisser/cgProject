@@ -102,7 +102,7 @@ int main(int argc, char** argv)
     //draw front-facing triangles filled
 	//and back-facing triangles as wires
     glPolygonMode(GL_FRONT,GL_FILL);
-    glPolygonMode(GL_BACK,GL_LINE);
+    glPolygonMode(GL_BACK,GL_FILL);
     //interpolate vertex colors over the triangles
 	glShadeModel(GL_SMOOTH);
 
@@ -161,7 +161,7 @@ void reshape(int w, int h)
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     //glOrtho (-1.1, 1.1, -1.1,1.1, -1000.0, 1000.0);
-    gluPerspective (50, (float)w/h, 0.01, 10);
+    gluPerspective (50, (float)w/h, 0.01, 1000);
     glMatrixMode(GL_MODELVIEW);
 }
 

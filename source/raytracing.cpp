@@ -14,9 +14,8 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-float lightstrength = 100.0f;
-float ambientstrenght = 0.2f;
-float lightscale = 1.0f;
+float lightstrength = 1.0f;
+float ambientstrenght = 0.5f;
 
 //use this function for any preprocessing of the mesh.
 void init() {
