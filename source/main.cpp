@@ -36,7 +36,7 @@ unsigned int WindowSize_Y = 500;  // resolution Y
 unsigned int selectedLight = 0;
 
 unsigned int sampling = 1; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
-
+unsigned int bounces = 8;//max bounces determines reflection depth
 
 /**
  * Main function, which is drawing an image (frame) on the screen
@@ -274,7 +274,7 @@ void keyboard(unsigned char key, int x, int y)
 		//Trace single ray
 		Vec3Df testRayOrigin, testRayDestination;
 		produceRay(x, y, &testRayOrigin, &testRayDestination);
-		performRayTracing(testRayOrigin, testRayDestination);
+		performRayTracing(testRayOrigin, testRayDestination,bounces);
 		break;
 	}
 
@@ -329,7 +329,7 @@ void keyboard(unsigned char key, int x, int y)
 							(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
 
 						//launch raytracing for the given ray.
-						comp += performRayTracing(origin, dest);
+						comp += performRayTracing(origin, dest, bounces);
 					}
 				}
 
