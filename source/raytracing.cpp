@@ -28,7 +28,7 @@ void init() {
 	//otherwise the application will not load properly
 	//OR make sure the .obj is located in the working directory
 	//MyMesh.loadMesh("cube.obj", true);
-	MyMesh.loadMesh("test.obj", true);
+	MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -79,6 +79,95 @@ inline bool TriangleTest(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c) {
 	w = (d00 * d21 - d01 * d20) / denom;
 	u = 1.0f - v - w;
 	return (u >= 0 && u <= 1 && v >= 0 && u + v <= 1);
+}
+
+/*
+ * ray = The ray to be tested
+ * p1 = Low Left Front (0,0,0)
+ * p2 = High Right Back (1,1,1)
+ * tIn = entrypoint
+ * tOut = exitpoint
+ */
+bool BoxTest(Vec3Df ray, Vec3Df p1, Vec3Df p2, Vec3Df &tIn, Vec3Df &tOut) {
+	float dist = -1;
+	//front
+	float hit = PlaneTest(ray, Vec3Df(0,0,1), p1);
+	if (hit < 0) {
+		return false;
+	}
+	Vec3Df hitPoint = hit * ray;
+	if (hitPoint[0] >= p1.p[0] && hitPoint[0] <= p2.p[0] && hitPoint[1] >= p1.p[1] && hitPoint[1] <= p2.p[1]) {
+		tIn = hitPoint;
+		dist = hit;
+	}
+
+	//back
+	hit = PlaneTest(ray, Vec3Df(0,0,1), p2);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	if (hitCheck(p1,p2,0,1,hit,hitPoint,tIn,tOut,dist)) {
+		return true;
+	}
+
+	//left
+	hit = PlaneTest(ray, Vec3Df(1,0,0), p1);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	if (hitCheck(p1,p2,1,2,hit,hitPoint,tIn,tOut,dist)) {
+		return true;
+	}
+
+	//right
+	hit = PlaneTest(ray, Vec3Df(1,0,0), p2);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	if (hitCheck(p1,p2,1,2,hit,hitPoint,tIn,tOut,dist)) {
+		return true;
+	}
+
+	//top
+	hit = PlaneTest(ray, Vec3Df(0,1,0), p1);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	if (hitCheck(p1,p2,0,2,hit,hitPoint,tIn,tOut,dist)) {
+		return true;
+	}
+
+	//bottom
+	hit = PlaneTest(ray, Vec3Df(0,1,0), p2);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	//Compiler was moaning like a little bitch, so we fixed it. :)
+	return hitCheck(p1,p2,0,2,hit,hitPoint,tIn,tOut,dist);
+}
+
+bool hitCheck(Vec3Df p1, Vec3Df p2, int i1, int i2, float hit, Vec3Df hitPoint, Vec3Df &tIn, Vec3Df &tOut, float &dist) {
+	if (hitPoint[i1] >= p1.p[i1] && hitPoint[i1] <= p2.p[i1] && hitPoint[i2] >= p1.p[i2] && hitPoint[i2] <= p2.p[i2]) {
+		if (dist == -1) {
+			tIn = hitPoint;
+			dist = hit;
+		}
+		else if (hit > dist) {
+			tOut = hitPoint;
+			return true;
+		}
+		else {
+			tOut = tIn;
+			tIn = hitPoint;
+			return true;
+		}
+	}
+	return false;
 }
 
 /*
