@@ -13,11 +13,20 @@
 #include <float.h>
 #include <utility>
 #include <list>
+#include <cmath>
 #include "mesh.h"
+#include "raytracing.h"
 
-bool KD::interSectsWithRay(Vec3Df & origin, Vec3Df & dest, float & distance){
-	distance = 1;
-	return true; //Add box detection here.
+bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance){
+	Vec3Df lbfT = this->lbf - origin, rtrT = this->rtr - origin;
+	Vec3Df hit1, hit2;
+	bool result = BoxTest2(dest - origin, lbfT, rtrT, hit1, hit2);
+	if(result){
+		Vec3Df d = hit1 + origin;
+		distance = d.getLength();
+	}
+	//std::cout << distance << " " << result << std::endl;
+	return result;
 }
 
 bool trianglesDistancePairComparison(std::pair< float, std::list<unsigned int> > first,
@@ -41,9 +50,9 @@ KDLeaf::KDLeaf(){
 }
 
 bool isBetween(Vec3Df point, Vec3Df lbf, Vec3Df rtr){
-	return point[0] > lbf[0] && point[0] < rtr[0] &&
-			point[1] > lbf[1] && point[1] < rtr[1] &&
-			point[2] > lbf[2] && point[2] < rtr[2];
+	return point[0] >= lbf[0] && point[0] <= rtr[0] &&
+			point[1] >= lbf[1] && point[1] <= rtr[1] &&
+			point[2] >= lbf[2] && point[2] <= rtr[2];
 }
 
 void KDLeaf::add(unsigned int triangle){
@@ -55,17 +64,76 @@ void KDLeaf::add(unsigned int triangle){
 		this->triangles.push_front(triangle);
 	}
 }
+
+void KDLeaf::optimizeBox(){
+	if(this->triangles.size() > 0){
+		float min1 = FLT_MAX, min2 = FLT_MAX, min3 = FLT_MAX, max1 = FLT_MAX * -1, max2 = FLT_MAX * -1, max3 = FLT_MAX * -1;
+		for(std::list<unsigned int>::iterator it = this->triangles.begin(); it != this->triangles.end(); ++it){
+			unsigned int i = *it;
+			for(int tv = 0; tv < 3; ++tv){
+
+				Vertex v = MyMesh.vertices[MyMesh.triangles[i].v[tv]];
+				if(v.p[0] > max1){
+					max1 = v.p[0];
+				}
+				if(v.p[0] < min1){
+					min1 = v.p[0];
+				}
+				if(v.p[1] > max2){
+					max2 = v.p[1];
+				}
+				if(v.p[1] < min2){
+					min2 = v.p[1];
+				}
+				if(v.p[2] > max3){
+					max3 = v.p[2];
+				}
+				if(v.p[2] < min3){
+					min3 = v.p[2];
+				}
+			}
+		}
+		if(min1 > this->lbf[0]){
+			this->lbf[0] = min1;
+		}
+		if(min2 > this->lbf[1]){
+			this->lbf[1] = min2;
+		}
+		if(min3 > this->lbf[2]){
+			this->lbf[2] = min3;
+		}
+		if(max1 < this->rtr[0]){
+			this->rtr[0] = max1;
+		}
+		if(max2 < this->rtr[1]){
+			this->rtr[1] = max2;
+		}
+		if(max3 < this->rtr[2]){
+			this->rtr[2] = max3;
+		}
+	}
+}
+
 float KDLeaf::cost(){
 	Vec3Df vol = this->rtr - this->lbf;
-	return vol[0]*vol[1]*vol[2] + this->triangles.size();
+	float cost = vol[0]*vol[1]*vol[2] / this->triangles.size();
+	if(cost < 0) cost *=-1;
+	return cost;
 }
 
-void KDLeaf::getOrderedTrianlges(Vec3Df & origin, Vec3Df & dest, float distance,
+void KDLeaf::getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 		std::list< std::pair< float, std::list<unsigned int> > > & triangles){
 	//triangles = std::list< std::pair< float, std::list<unsigned int> > >();
-	triangles.push_back(std::pair< float, std::list<unsigned int> >(distance, this->triangles));
+	float distance;
+	if(this->interSectsWithRay(origin, dest, distance)){
+		triangles.push_back(std::pair< float, std::list<unsigned int> >(distance, this->triangles));
+	}
 }
 
+void KDLeaf::prettyPrint(){
+	std::cout << "(LEAF: " << this->lbf << " " << this->rtr << " "
+			<< this->triangles.size() << " " << this->cost() <<  ")" << std::endl;
+}
 
 /**
  * class KDNode
@@ -78,9 +146,9 @@ KDNode::KDNode(Vec3Df lbf, Vec3Df rtr, KD * left, KD * right): KD(){
 	this->right = right;
 }
 
-KD* KDNode::build(KDLeaf * from, unsigned int depth){
+KD* KDNode::build(KDLeaf * from, const unsigned int depth){
 	if (depth == 0 || from->triangles.size() < 100) return from;
-	int parts = 16;
+	int parts = 4;
 	float minCost = FLT_MAX;
 	KDLeaf * minL, * minR;
 	for(int axis = 0; axis < 3; ++axis){
@@ -93,34 +161,42 @@ KD* KDNode::build(KDLeaf * from, unsigned int depth){
 				left->add(*t);
 				right->add(*t);
 			}
-			int cost = left->cost() + right->cost();
+			float cost = left->cost() + right->cost();
 			if(cost < minCost){
 				minCost = cost;
-				delete minL;
-				delete minR;
+				//delete minL;
+				//delete minR;
 				minL = left;
 				minR = right;
-			}else{
+			}/*else{
 				delete left;
 				delete right;
-			}
+			}*/
 		}
 	}
+	minL->optimizeBox();
+	minR->optimizeBox();
 	return new KDNode(from->lbf, from->rtr, KDNode::build(minL, depth - 1), KDNode::build(minR, depth - 1));
 }
 
-void KDNode::getOrderedTrianlges(Vec3Df & origin, Vec3Df & dest, float distance,
+void KDNode::getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 		std::list< std::pair< float, std::list<unsigned int> > > & triangles){
 	std::list< std::pair< float, std::list<unsigned int> > > fromLeft;
-	float leftD;
-	if(this->left->interSectsWithRay(origin, dest, leftD)){
-		this->left->getOrderedTrianlges(origin, dest, leftD, fromLeft);
+	float distance;
+	if(this->interSectsWithRay(origin, dest, distance)){
+		this->left->getOrderedTrianlges(origin, dest, fromLeft);
+		std::list< std::pair< float, std::list<unsigned int> > > fromRight;
+		this->right->getOrderedTrianlges(origin, dest, fromRight);
+		fromLeft.merge(fromRight, trianglesDistancePairComparison);
 	}
-	std::list< std::pair< float, std::list<unsigned int> > > fromRight;
-	float rightD;
-	if(this->right->interSectsWithRay(origin, dest, rightD)){
-		this->right->getOrderedTrianlges(origin, dest, rightD, fromRight);
-	}
-	fromLeft.merge(fromRight, trianglesDistancePairComparison);
 	triangles = fromLeft;
+}
+
+void KDNode::prettyPrint(){
+	std::cout << "(NODE: " << this->lbf << " " << this->rtr << std::endl;
+	std::cout << "LEFT: ";
+	this->left->prettyPrint();
+	std::cout << "RIGHT: ";
+	this->right->prettyPrint();
+	std::cout << ")" << std::endl;
 }

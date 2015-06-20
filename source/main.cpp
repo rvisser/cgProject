@@ -30,12 +30,12 @@ std::vector<Vec3Df> MyLightPositions;
 //Main mesh 
 Mesh MyMesh;
 
-unsigned int WindowSize_X = 500;  // resolution X
-unsigned int WindowSize_Y = 500;  // resolution Y
+unsigned int WindowSize_X = 800;  // resolution X
+unsigned int WindowSize_Y = 800;  // resolution Y
 
 unsigned int selectedLight = 0;
 
-unsigned int sampling = 1; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
+unsigned int sampling = 4; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
 unsigned int bounces = 8;//max bounces determines reflection depth
 
 /**

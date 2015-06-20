@@ -16,9 +16,10 @@
 class KD {
 public:
 	Vec3Df lbf, rtr;
-	bool interSectsWithRay(Vec3Df & origin, Vec3Df & dest, float & distance);
-	virtual void getOrderedTrianlges(Vec3Df & origin, Vec3Df & dest, float distance,
+	bool interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance);
+	virtual void getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 			std::list< std::pair< float, std::list<unsigned int> > > & triangles) = 0;
+	virtual void prettyPrint() = 0;
 	//virtual ~KD() = 0;
 };
 
@@ -32,7 +33,9 @@ public:
 	KDLeaf();
 	void add(unsigned int triangle);
 	float cost();
-	void getOrderedTrianlges(Vec3Df & origin, Vec3Df & dest, float distance,
+	void optimizeBox();
+	void prettyPrint();
+	void getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 				std::list< std::pair< float, std::list<unsigned int> > > & triangles);
 };
 
@@ -42,7 +45,8 @@ private:
 public:
 	KDNode(Vec3Df lbf, Vec3Df rtr, KD* left, KD* right);
 	static KD* build(KDLeaf * from, unsigned int depth);
-	void getOrderedTrianlges(Vec3Df & origin, Vec3Df & dest, float distance,
+	void prettyPrint();
+	void getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 				std::list< std::pair< float, std::list<unsigned int> > > & triangles);
 };
 
