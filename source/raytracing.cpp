@@ -6,6 +6,7 @@
 #include "raytracing.h"
 #include <omp.h>
 #include <float.h>
+#include "KdTree.h"
 
 #define dot(u,v)	Vec3Df::dotProduct(u, v)
 
@@ -16,6 +17,7 @@ Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 float lightstrength = 0.9f;
 float ambientstrenght = 0.5f;
+KD * tree;
 
 //use this function for any preprocessing of the mesh.
 void init() {
@@ -28,8 +30,36 @@ void init() {
 	//otherwise the application will not load properly
 	//OR make sure the .obj is located in the working directory
 	//MyMesh.loadMesh("cube.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	MyMesh.loadMesh("cube.obj", true);
 	MyMesh.computeVertexNormals();
+
+	float min1 = FLT_MAX, min2 = FLT_MAX, min3 = FLT_MAX, max1 = FLT_MIN, max2 = FLT_MIN, max3 = FLT_MIN;
+	for(unsigned int i = 0; i < MyMesh.vertices.size(); ++ i){
+		Vertex v = MyMesh.vertices[i];
+		if(v.p[0] > max1){
+			max1 = v.p[0];
+		}
+		if(v.p[0] < min1){
+			min1 = v.p[0];
+		}
+		if(v.p[1] > max2){
+			max2 = v.p[1];
+		}
+		if(v.p[1] < min2){
+			min2 = v.p[1];
+		}
+		if(v.p[2] > max3){
+			max3 = v.p[2];
+		}
+		if(v.p[2] < min3){
+			min3 = v.p[2];
+		}
+	}
+	Vec3Df lbf = Vec3Df(min1, min2, min3), rtr = Vec3Df(max1, max2, max3);
+
+	KDLeaf * start = new KDLeaf(lbf, rtr);
+
+	tree = KDNode::build(start, 4);
 
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
