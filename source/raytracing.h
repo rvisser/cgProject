@@ -27,7 +27,7 @@ void produceRay(int x_I, int y_I, Vec3Df & origin, Vec3Df & dest);
 
 
 //your main function to rewrite
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
+Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, unsigned int bounces);
 
 //a function to debug --- you can draw in OpenGL here
 void yourDebugDraw();
@@ -35,4 +35,6 @@ void yourDebugDraw();
 //want keyboard interaction? Here it is...
 void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination);
 
+bool BoxTest(Vec3Df ray, Vec3Df p1, Vec3Df p2, Vec3Df &tIn, Vec3Df &tOut);
+bool hitCheck(Vec3Df p1, Vec3Df p2, int i1, int i2, float hit, Vec3Df hitPoint, Vec3Df &tIn, Vec3Df &tOut, float &dist);
 #endif

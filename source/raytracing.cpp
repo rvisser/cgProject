@@ -15,7 +15,7 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-float lightstrength = 0.9f;
+float lightstrength = 1.0f;
 float ambientstrenght = 0.5f;
 KD * tree;
 
@@ -65,13 +65,13 @@ void init() {
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
 	MyLightPositions.push_back(MyCameraPosition);
-	MyLightPositions.push_back(Vec3Df(1.4, 1.4, 1.4));
+	MyLightPositions.push_back(Vec3Df(0.5, 0.0, -0.5));
 }
 
 /*
  * given 3 points v1, v2 and v3 returns the normal of the plane spanned by these points
  */
-Vec3Df getNormal(const Vec3Df & v1, const Vec3Df & v2, const Vec3Df & v3) {
+inline Vec3Df getNormal(const Vec3Df & v1, const Vec3Df & v2, const Vec3Df & v3) {
 	Vec3Df e1 = v1 - v3;
 	Vec3Df e2 = v2 - v3;
 
@@ -109,6 +109,95 @@ inline bool TriangleTest(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c) {
 	w = (d00 * d21 - d01 * d20) / denom;
 	u = 1.0f - v - w;
 	return (u >= 0 && u <= 1 && v >= 0 && u + v <= 1);
+}
+
+/*
+ * ray = The ray to be tested
+ * p1 = Low Left Front (0,0,0)
+ * p2 = High Right Back (1,1,1)
+ * tIn = entrypoint
+ * tOut = exitpoint
+ */
+bool BoxTest(Vec3Df ray, Vec3Df p1, Vec3Df p2, Vec3Df &tIn, Vec3Df &tOut) {
+	float dist = -1;
+	//front
+	float hit = PlaneTest(ray, Vec3Df(0,0,1), p1);
+	if (hit < 0) {
+		return false;
+	}
+	Vec3Df hitPoint = hit * ray;
+	if (hitPoint[0] >= p1.p[0] && hitPoint[0] <= p2.p[0] && hitPoint[1] >= p1.p[1] && hitPoint[1] <= p2.p[1]) {
+		tIn = hitPoint;
+		dist = hit;
+	}
+
+	//back
+	hit = PlaneTest(ray, Vec3Df(0,0,1), p2);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	if (hitCheck(p1,p2,0,1,hit,hitPoint,tIn,tOut,dist)) {
+		return true;
+	}
+
+	//left
+	hit = PlaneTest(ray, Vec3Df(1,0,0), p1);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	if (hitCheck(p1,p2,1,2,hit,hitPoint,tIn,tOut,dist)) {
+		return true;
+	}
+
+	//right
+	hit = PlaneTest(ray, Vec3Df(1,0,0), p2);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	if (hitCheck(p1,p2,1,2,hit,hitPoint,tIn,tOut,dist)) {
+		return true;
+	}
+
+	//top
+	hit = PlaneTest(ray, Vec3Df(0,1,0), p1);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	if (hitCheck(p1,p2,0,2,hit,hitPoint,tIn,tOut,dist)) {
+		return true;
+	}
+
+	//bottom
+	hit = PlaneTest(ray, Vec3Df(0,1,0), p2);
+	hitPoint = hit * ray;
+	if (hit < 0) {
+		return false;
+	}
+	//Compiler was moaning like a little bitch, so we fixed it. :)
+	return hitCheck(p1,p2,0,2,hit,hitPoint,tIn,tOut,dist);
+}
+
+bool hitCheck(Vec3Df p1, Vec3Df p2, int i1, int i2, float hit, Vec3Df hitPoint, Vec3Df &tIn, Vec3Df &tOut, float &dist) {
+	if (hitPoint[i1] >= p1.p[i1] && hitPoint[i1] <= p2.p[i1] && hitPoint[i2] >= p1.p[i2] && hitPoint[i2] <= p2.p[i2]) {
+		if (dist == -1) {
+			tIn = hitPoint;
+			dist = hit;
+		}
+		else if (hit > dist) {
+			tOut = hitPoint;
+			return true;
+		}
+		else {
+			tOut = tIn;
+			tIn = hitPoint;
+			return true;
+		}
+	}
+	return false;
 }
 
 /*
@@ -150,12 +239,13 @@ bool testRay(const Vec3Df & origin, const Vec3Df & dest) {
 		Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
 		Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
 		Vec3Df ray = dest - origin;
+		float dist = ray.getLength();
 		Vec3Df norm = getNormal(v1, v2, v3);
 		float hit = PlaneTest(ray, norm, v1);
 		if (hit > 0) {
 			//Make sure that p is inside the triangle using barycentric coordinates
 			if (TriangleTest(hit * ray, v1, v2, v3)) {
-				return true;
+				if (hit * ray.getLength()<dist) return true;
 			}
 		}
 	}
@@ -171,12 +261,18 @@ Vec3Df calcDiffuse(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & 
 		//Translate point p back to world coordinates!
 		//Not sure if I should, this seems to work
 		Vec3Df at, norm;
-		int intersection;
 		if (!testRay(p, *l)) {
 			//No intersection :)
 			Vec3Df lVector = Vec3Df(l->p) - p;
 			lVector.normalize();
-			float lightDiffuse = lightstrength / dot(*l - p, *l - p); //not sure if 1
+			/*
+			 * calculates the strength of the light with inverse-square falloff
+			 * at distance 0 the light intensity is 1.0 I
+			 * at distance 1 the light intensity is 1/4 I
+			 * at distance 2 the light intensity is 1/9 I
+			 */
+			Vec3Df lightDistance = (*l - p);
+			float lightDiffuse = lightstrength / pow(lightDistance.getLength()+1,2);
 			result += dot(lVector, normal)* objectColor * lightDiffuse;
 		}
 	}
@@ -193,15 +289,16 @@ Vec3Df calcAmbient(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & 
 /*
  * given a ray, point and normal reflects the ray and gives the result back as a reflecting color.
  */
-Vec3Df calcReflect(const Vec3Df & objectColor, const Vec3Df & p, Vec3Df ray, const Vec3Df & normal) {
-	ray.normalize();//doesn't work yet
-	return objectColor*performRayTracing(p,p + ray - 2*dot(normal,ray)*normal);
+Vec3Df calcReflect(const Vec3Df & objectColor, const Vec3Df & p, Vec3Df ray, const Vec3Df & normal, unsigned int bounces) {
+	ray.normalize();
+	return objectColor*performRayTracing(p,p + ray - 2*dot(normal,ray)*normal, bounces);
 }
 
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest) {
+Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, unsigned int bounces) {
 	//Default color: black background
 	Vec3Df color = Vec3Df(0, 0, 0);
+	if (!bounces) return color;
 	int triangle;
 	Vec3Df p, norm;
 	castRay(origin, dest, triangle, p, norm);
@@ -215,6 +312,9 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest) {
 		color += calcDiffuse(diffuse, p * 0.9999 + origin, norm); // if calcDiffuse is working
 		color += calcAmbient(diffuse, p, norm);
 		color += Vec3Df(0,0,0);//calcSpecular;
+		/*if (diffuse[1]>0.8,diffuse[1]>0.8,diffuse[2]>0.8) {
+			color += calcReflect(Vec3Df(1,1,1),p * 0.9999 + origin,dest-origin,norm,--bounces);
+		}*///uncomment this to make white surfaces reflective
 	}
 
 	return color;
