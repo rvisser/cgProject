@@ -35,7 +35,6 @@ void yourDebugDraw();
 //want keyboard interaction? Here it is...
 void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination);
 
-inline bool BoxTest(Vec3Df ray, Vec3Df p1, Vec3Df p2, Vec3Df &tIn, Vec3Df &tOut);
-bool BoxTest2(Vec3Df ray, Vec3Df p1, Vec3Df p2, Vec3Df &tIn, Vec3Df &tOut);
+bool boxTest(Vec3Df ray, Vec3Df p1, Vec3Df p2, Vec3Df &tIn, Vec3Df &tOut);
 inline bool hitCheck(Vec3Df p1, Vec3Df p2, int i1, int i2, float hit, Vec3Df hitPoint, Vec3Df &tIn, Vec3Df &tOut, float &dist);
 #endif

@@ -20,7 +20,7 @@
 bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance){
 	Vec3Df lbfT = this->lbf - origin, rtrT = this->rtr - origin;
 	Vec3Df hit1, hit2;
-	bool result = BoxTest2(dest - origin, lbfT, rtrT, hit1, hit2);
+	bool result = boxTest(dest - origin, lbfT, rtrT, hit1, hit2);
 	if(result){
 		Vec3Df d = hit1 + origin;
 		distance = d.getLength();
