@@ -34,12 +34,12 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 800;  // resolution X
 unsigned int WindowSize_Y = 800;  // resolution Y
 
-unsigned int RenderSize_X = 200;
-unsigned int RenderSize_Y = 200;
+unsigned int RenderSize_X = 800;
+unsigned int RenderSize_Y = 800;
 
 unsigned int selectedLight = 0;
 
-unsigned int sampling = 1; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
+unsigned int sampling = 4; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
 unsigned int bounces = 1;//max bounces determines reflection depth
 
 bool kdTreeVerbose = false;
@@ -321,7 +321,7 @@ void keyboard(unsigned char key, int x, int y)
 		for (unsigned int y=0; y<RenderSize_Y;++y)
 		{
 			std::cout << "Progress: " << y << " of " << RenderSize_Y << std::endl;
-			#pragma omp parallel for private(origin, dest)
+			#pragma omp parallel for private(origin, dest), schedule(dynamic)
 			for (unsigned int x=0; x<RenderSize_X;++x)
 			{
 				Vec3Df comp = Vec3Df(0, 0, 0);
