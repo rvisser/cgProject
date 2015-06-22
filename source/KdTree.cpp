@@ -20,13 +20,25 @@
 bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance){
 	Vec3Df lbfT = this->lbf - origin, rtrT = this->rtr - origin;
 	Vec3Df hit1, hit2;
-	bool result = BoxTest2(dest - origin, lbfT, rtrT, hit1, hit2);
-	distance = hit1.getLength();
+	Vec3Df ray = dest - origin;
+	bool result = isBetween(origin, this->lbf, this->rtr);
+	distance = 0;
 	if(!result){
+		result = BoxTest2(ray, lbfT, rtrT, hit1, hit2);
+		distance = hit1.getLength();
+	}
+
+	/*if(!result){
 		result = isBetween(origin, this->lbf, this->rtr);
 		distance = 0;
-	}
-	std::cout << distance << " " << result << std::endl;
+	}*/
+	/*std::cout << distance << " " << result << std::endl;
+	if(!result){
+		std::cout << "LBF: " << this->lbf << result << std::endl;
+		std::cout << "RTR: " << this->rtr << result << std::endl;
+		std::cout << "RO: " << origin << result << std::endl;
+		std::cout << "RD: " << dest << result << std::endl;
+	}*/
 	return result;
 }
 
@@ -50,7 +62,7 @@ KDLeaf::KDLeaf(){
 	KDLeaf(Vec3Df(), Vec3Df());
 }
 
-bool isBetween(Vec3Df point, Vec3Df lbf, Vec3Df rtr){
+inline bool isBetween(const Vec3Df & point, const Vec3Df & lbf, const Vec3Df & rtr){
 	return point[0] >= lbf[0] && point[0] <= rtr[0] &&
 			point[1] >= lbf[1] && point[1] <= rtr[1] &&
 			point[2] >= lbf[2] && point[2] <= rtr[2];
@@ -117,9 +129,12 @@ void KDLeaf::optimizeBox(){
 
 float KDLeaf::cost(){
 	Vec3Df vol = this->rtr - this->lbf;
-	float cost = vol[0]*vol[1]*vol[2] / this->triangles.size();
-	if(cost < 0) cost *=-1;
-	return cost;
+	if(this->triangles.size() > 0){
+		float cost = vol[0]*vol[1]*vol[2] / this->triangles.size();
+		if(cost < 0) cost *=-1;
+		return cost;
+	}
+	return FLT_MAX;
 }
 
 void KDLeaf::getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
@@ -153,6 +168,7 @@ KD* KDNode::build(KDLeaf * from, const unsigned int depth){
 	float minCost = FLT_MAX;
 	KDLeaf * minL, * minR;
 	for(int axis = 0; axis < 3; ++axis){
+		if(from->lbf[axis] == from->rtr[axis]) continue;//This is a plane!?
 		Vec3Df step = ((from->rtr[axis] - from->lbf[axis])/parts) * Vec3Df(axis == 0, axis == 1, axis == 2);
 		for(int i = 1; i < parts; ++ i){
 			KDLeaf * left = new KDLeaf(from->lbf, from->rtr - (parts - i) * step);
@@ -165,16 +181,12 @@ KD* KDNode::build(KDLeaf * from, const unsigned int depth){
 			float cost = left->cost() + right->cost();
 			if(cost < minCost){
 				minCost = cost;
-				//delete minL;
-				//delete minR;
 				minL = left;
 				minR = right;
-			}/*else{
-				delete left;
-				delete right;
-			}*/
+			}
 		}
 	}
+	if(minCost == FLT_MAX) return from;
 	minL->optimizeBox();
 	minR->optimizeBox();
 	return new KDNode(from->lbf, from->rtr, KDNode::build(minL, depth - 1), KDNode::build(minR, depth - 1));
@@ -188,7 +200,11 @@ void KDNode::getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 		this->left->getOrderedTrianlges(origin, dest, fromLeft);
 		std::list< std::pair< float, std::list<unsigned int> > > fromRight;
 		this->right->getOrderedTrianlges(origin, dest, fromRight);
-		fromLeft.merge(fromRight, trianglesDistancePairComparison);
+		if(fromRight.size() > 0 && fromLeft.size() > 0){
+			fromLeft.merge(fromRight, trianglesDistancePairComparison);
+		}else if(fromRight.size() > 0){
+			fromLeft = fromRight;
+		}
 	}
 	triangles = fromLeft;
 }
