@@ -16,6 +16,7 @@
 #include <cmath>
 #include "mesh.h"
 #include "raytracing.h"
+#include "aabbTriangle.h"
 
 bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance){
 	Vec3Df lbfT = this->lbf - origin, rtrT = this->rtr - origin;
@@ -32,12 +33,16 @@ bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & d
 		result = isBetween(origin, this->lbf, this->rtr);
 		distance = 0;
 	}*/
-	/*std::cout << distance << " " << result << std::endl;
-	if(!result){
-		std::cout << "LBF: " << this->lbf << result << std::endl;
-		std::cout << "RTR: " << this->rtr << result << std::endl;
-		std::cout << "RO: " << origin << result << std::endl;
-		std::cout << "RD: " << dest << result << std::endl;
+	/*if(kdTreeVerbose){
+		std::cout << distance << " " << result << std::endl;
+		if(!result){
+			std::cout << "LBF: " << this->lbf << result << std::endl;
+			std::cout << "RTR: " << this->rtr << result << std::endl;
+			std::cout << "RO: " << origin << result << std::endl;
+			std::cout << "RD: " << dest << result << std::endl;
+		}else{
+			//std::cout << "T: " << this-> << result << std::endl;
+		}
 	}*/
 	return result;
 }
@@ -70,11 +75,19 @@ inline bool isBetween(const Vec3Df & point, const Vec3Df & lbf, const Vec3Df & r
 
 void KDLeaf::add(unsigned int triangle){
 	Triangle t = MyMesh.triangles[triangle];
+	Vec3Df h1, h2;
 	Vec3Df p1 = MyMesh.vertices[t.v[0]].p, p2 = MyMesh.vertices[t.v[1]].p, p3 = MyMesh.vertices[t.v[2]].p;
 	if(isBetween(p1, this->lbf, this->rtr) ||
 			isBetween(p2, this->lbf, this->rtr) ||
 			isBetween(p3, this->lbf, this->rtr)){
 		this->triangles.push_front(triangle);
+	}else{
+		Vec3Df half = (this->rtr - this->lbf) / 2;
+		Vec3Df middle = this->lbf + half;
+		Vec3Df points [3] = {p1, p2, p3};
+		if(triBoxOverlap(middle, half, points)){
+			this->triangles.push_front(triangle);
+		}
 	}
 }
 
@@ -130,9 +143,9 @@ void KDLeaf::optimizeBox(){
 float KDLeaf::cost(){
 	Vec3Df vol = this->rtr - this->lbf;
 	if(this->triangles.size() > 0){
-		float cost = vol[0]*vol[1]*vol[2] / this->triangles.size();
+		float cost = vol[0]*vol[1]*vol[2] * 1000;
 		if(cost < 0) cost *=-1;
-		return cost;
+		return cost + this->triangles.size();
 	}
 	return FLT_MAX;
 }
@@ -149,6 +162,13 @@ void KDLeaf::getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 void KDLeaf::prettyPrint(){
 	std::cout << "(LEAF: " << this->lbf << " " << this->rtr << " "
 			<< this->triangles.size() << " " << this->cost() <<  ")" << std::endl;
+}
+
+void KDLeaf::prettyPrintHit(Vec3Df origin, Vec3Df dest){
+	float ign;
+	std::cout << "(LEAF: " << this->lbf << " " << this->rtr << " "
+			<< this->triangles.size() << " " << this->cost() << " "
+			<< this->interSectsWithRay(origin, dest, ign) <<  ")" << std::endl;
 }
 
 /**
@@ -215,5 +235,14 @@ void KDNode::prettyPrint(){
 	this->left->prettyPrint();
 	std::cout << "RIGHT: ";
 	this->right->prettyPrint();
+	std::cout << ")" << std::endl;
+}
+void KDNode::prettyPrintHit(Vec3Df origin, Vec3Df dest){
+	float ign;
+	std::cout << "(NODE: " << this->lbf << " " << this->rtr << " " << this->interSectsWithRay(origin, dest, ign) << std::endl;
+	std::cout << "LEFT: ";
+	this->left->prettyPrintHit(origin, dest);
+	std::cout << "RIGHT: ";
+	this->right->prettyPrintHit(origin, dest);
 	std::cout << ")" << std::endl;
 }

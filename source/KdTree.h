@@ -13,6 +13,8 @@
 #include "Vec3D.h"
 #include "raytracing.h"
 
+extern bool kdTreeVerbose;
+
 inline bool isBetween(const Vec3Df & point, const Vec3Df & lbf, const Vec3Df & rtr);
 
 class KD {
@@ -22,6 +24,7 @@ public:
 	virtual void getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 			std::list< std::pair< float, std::list<unsigned int> > > & triangles) = 0;
 	virtual void prettyPrint() = 0;
+	virtual void prettyPrintHit(Vec3Df origin, Vec3Df dest) = 0;
 	//virtual ~KD() = 0;
 };
 
@@ -37,6 +40,7 @@ public:
 	float cost();
 	void optimizeBox();
 	void prettyPrint();
+	void prettyPrintHit(Vec3Df origin, Vec3Df dest);
 	void getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 				std::list< std::pair< float, std::list<unsigned int> > > & triangles);
 };
@@ -48,6 +52,7 @@ public:
 	KDNode(Vec3Df lbf, Vec3Df rtr, KD* left, KD* right);
 	static KD* build(KDLeaf * from, unsigned int depth);
 	void prettyPrint();
+	void prettyPrintHit(Vec3Df origin, Vec3Df dest);
 	void getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
 				std::list< std::pair< float, std::list<unsigned int> > > & triangles);
 };

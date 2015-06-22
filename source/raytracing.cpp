@@ -30,7 +30,7 @@ void init() {
 	//otherwise the application will not load properly
 	//OR make sure the .obj is located in the working directory
 	//MyMesh.loadMesh("cube.obj", true);
-	MyMesh.loadMesh("test.obj", true);
+	MyMesh.loadMesh("dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 
