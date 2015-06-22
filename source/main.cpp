@@ -9,6 +9,7 @@
 #include "mesh.h"
 #include "traqueboule.h"
 #include "imageWriter.h"
+#include "KdTree.h"
 
 
 
@@ -33,13 +34,17 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 800;  // resolution X
 unsigned int WindowSize_Y = 800;  // resolution Y
 
-unsigned int RenderSize_X = 400;
-unsigned int RenderSize_Y = 400;
+unsigned int RenderSize_X = 200;
+unsigned int RenderSize_Y = 200;
 
 unsigned int selectedLight = 0;
 
 unsigned int sampling = 1; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
-unsigned int bounces = 2;//max bounces determines reflection depth
+unsigned int bounces = 1;//max bounces determines reflection depth
+
+bool kdTreeVerbose = false;
+
+extern KD * tree;
 
 /**
  * Main function, which is drawing an image (frame) on the screen
@@ -275,9 +280,12 @@ void keyboard(unsigned char key, int x, int y)
 	}
 	case 's':{
 		//Trace single ray
+		kdTreeVerbose = true;
 		Vec3Df testRayOrigin, testRayDestination;
 		produceRay(x, y, &testRayOrigin, &testRayDestination);
 		performRayTracing(testRayOrigin, testRayDestination,bounces);
+		kdTreeVerbose = false;
+		tree->prettyPrintHit(testRayOrigin, testRayDestination);
 		break;
 	}
 
