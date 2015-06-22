@@ -13,6 +13,8 @@
 #include "Vec3D.h"
 #include "raytracing.h"
 
+inline bool isBetween(const Vec3Df & point, const Vec3Df & lbf, const Vec3Df & rtr);
+
 class KD {
 public:
 	Vec3Df lbf, rtr;
