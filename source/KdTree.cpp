@@ -24,7 +24,7 @@ bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & d
 	bool result = isBetween(origin, this->lbf, this->rtr);
 	distance = 0;
 	if(!result){
-		result = BoxTest2(ray, lbfT, rtrT, hit1, hit2);
+		result = boxTest(ray, lbfT, rtrT, hit1, hit2);
 		distance = hit1.getLength();
 	}
 
