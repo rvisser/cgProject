@@ -33,10 +33,13 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 800;  // resolution X
 unsigned int WindowSize_Y = 800;  // resolution Y
 
+unsigned int RenderSize_X = 400;
+unsigned int RenderSize_Y = 400;
+
 unsigned int selectedLight = 0;
 
-unsigned int sampling = 4; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
-unsigned int bounces = 8;//max bounces determines reflection depth
+unsigned int sampling = 1; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
+unsigned int bounces = 2;//max bounces determines reflection depth
 
 /**
  * Main function, which is drawing an image (frame) on the screen
@@ -285,7 +288,7 @@ void keyboard(unsigned char key, int x, int y)
 
 
 		//Setup an image with the size of the current image.
-		Image result(WindowSize_X,WindowSize_Y);
+		Image result(RenderSize_X,RenderSize_Y);
 
 		//produce the rays for each pixel, by first computing
 		//the rays for the corners of the frustum.
@@ -304,14 +307,14 @@ void keyboard(unsigned char key, int x, int y)
 		//Vec3Df colors [WindowSize_Y * WindowSize_X] = {};
 		//array<Vec3Df, WindowSize_Y * WindowSize_X] colors = {};
 		Vec3Df *colors;
-		colors = new Vec3Df[WindowSize_Y * WindowSize_X];
+		colors = new Vec3Df[RenderSize_Y * RenderSize_X];
 
 
-		for (unsigned int y=0; y<WindowSize_Y;++y)
+		for (unsigned int y=0; y<RenderSize_Y;++y)
 		{
-			std::cout << "Progress: " << y << " of " << WindowSize_Y << std::endl;
+			std::cout << "Progress: " << y << " of " << RenderSize_Y << std::endl;
 			#pragma omp parallel for private(origin, dest)
-			for (unsigned int x=0; x<WindowSize_X;++x)
+			for (unsigned int x=0; x<RenderSize_X;++x)
 			{
 				Vec3Df comp = Vec3Df(0, 0, 0);
 				//produce the rays for each pixel, by interpolating 
@@ -320,8 +323,8 @@ void keyboard(unsigned char key, int x, int y)
 				//Use supersampling for a less pixelated result
 				for(unsigned xs = 0; xs < sampling; ++xs){
 					for(unsigned ys = 0; ys < sampling; ++ys){
-						float xscale=1.0f-float(x*sampling + xs)/(WindowSize_X*sampling-1);
-						float yscale=1.0f-float(y*sampling + ys)/(WindowSize_Y*sampling-1);
+						float xscale=1.0f-float(x*sampling + xs)/(RenderSize_X*sampling-1);
+						float yscale=1.0f-float(y*sampling + ys)/(RenderSize_Y*sampling-1);
 
 						origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
 							(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
@@ -333,20 +336,20 @@ void keyboard(unsigned char key, int x, int y)
 					}
 				}
 
-				colors[WindowSize_X * y + x] = comp / (sampling * sampling);
+				colors[RenderSize_X * y + x] = comp / (sampling * sampling);
 				//store the result in an image 
 			}
 		}
 		float maxintensity = 1;
-		for (unsigned int y=0; y<WindowSize_Y;++y)
-			for (unsigned int x=0; x<WindowSize_X;++x){
-				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][0]);
-				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][1]);
-				maxintensity = std::max(maxintensity,colors[WindowSize_X * y + x][2]);
+		for (unsigned int y=0; y<RenderSize_Y;++y)
+			for (unsigned int x=0; x<RenderSize_X;++x){
+				maxintensity = std::max(maxintensity,colors[RenderSize_X * y + x][0]);
+				maxintensity = std::max(maxintensity,colors[RenderSize_X * y + x][1]);
+				maxintensity = std::max(maxintensity,colors[RenderSize_X * y + x][2]);
 			}
-		for (unsigned int y=0; y<WindowSize_Y;++y)
-			for (unsigned int x=0; x<WindowSize_X;++x)
-				result.setPixel(x,y, RGBAValue(colors[WindowSize_X * y + x][0]/maxintensity, colors[WindowSize_X * y + x][1]/maxintensity, colors[WindowSize_X * y + x][2]/maxintensity, 1));
+		for (unsigned int y=0; y<RenderSize_Y;++y)
+			for (unsigned int x=0; x<RenderSize_X;++x)
+				result.setPixel(x,y, RGBAValue(colors[RenderSize_X * y + x][0]/maxintensity, colors[RenderSize_X * y + x][1]/maxintensity, colors[RenderSize_X * y + x][2]/maxintensity, 1));
 		delete [] colors;
 		result.writeImage("result.ppm");
 		cout<<"Raytracing finished"<<endl;
