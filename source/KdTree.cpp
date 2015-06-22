@@ -21,11 +21,12 @@ bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & d
 	Vec3Df lbfT = this->lbf - origin, rtrT = this->rtr - origin;
 	Vec3Df hit1, hit2;
 	bool result = BoxTest2(dest - origin, lbfT, rtrT, hit1, hit2);
-	if(result){
-		Vec3Df d = hit1 + origin;
-		distance = d.getLength();
+	distance = hit1.getLength();
+	if(!result){
+		result = isBetween(origin, this->lbf, this->rtr);
+		distance = 0;
 	}
-	//std::cout << distance << " " << result << std::endl;
+	std::cout << distance << " " << result << std::endl;
 	return result;
 }
 
