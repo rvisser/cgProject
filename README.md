@@ -6,6 +6,9 @@
 + Ruben Bes (4227492)
 + Diony Tadema (4219198)
 + Aurél Bánsági (4251342)
++ Tom Brunner (4217160)
++ Rob van den Berg (4319427)
+
 
 ## Controls
 + L: Add Light
