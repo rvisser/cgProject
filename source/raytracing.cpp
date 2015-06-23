@@ -45,7 +45,6 @@ void init() {
 	}
 	start->optimizeBox();
 
-	start->prettyPrint();
 	unsigned int
 		treeDepth = atoi(config["kdTreeLevels"].c_str()),
 		treeParts = atoi(config["kdTreeParts"].c_str());
@@ -55,7 +54,6 @@ void init() {
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
 	MyLightPositions.push_back(MyCameraPosition);
-	MyLightPositions.push_back(Vec3Df(0.5, 0.0, -0.5));
 }
 
 /*
@@ -78,6 +76,8 @@ inline Vec3Df getNormal(const Vec3Df & v1, const Vec3Df & v2, const Vec3Df & v3)
 inline float PlaneTest(const Vec3Df & ray, const Vec3Df & n, const Vec3Df & v1) {
 	//Distance from origin to the plane
 	float dist = Vec3Df::dotProduct(v1, n);
+
+	//TODO: what if the dotProduct is zero?
 
 	//Calculate the hit parameter of the ray, and the point in (or next to) the triangle where the ray hits
 	return dist / Vec3Df::dotProduct(ray, n);
@@ -255,7 +255,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, unsigned in
 		//Translate point p back to world coordinates!
 		color += calcDiffuse(diffuse, p * 0.9999 + origin, norm); // if calcDiffuse is working
 		color += calcAmbient(diffuse, p, norm);
-		color += Vec3Df(0,0,0);//calcSpecular;
+		//color += Vec3Df(0,0,0);//calcSpecular;//TODO: Implement
 		/*if (diffuse[1]>0.8,diffuse[1]>0.8,diffuse[2]>0.8) {
 			color += calcReflect(Vec3Df(1,1,1),p * 0.9999 + origin,dest-origin,norm,--bounces);
 		}*///uncomment this to make white surfaces reflective
