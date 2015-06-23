@@ -12,12 +12,14 @@
 
 //temporary variables
 //these are only used to illustrate 
-//a simple debug drawing. A ray 
+//a simple debug drawing. A ray
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 float lightstrength = 1.0f;
 float ambientstrenght = 0.5f;
 KD * tree;
+Vec3Df originColor = Vec3Df(0,1,1);
+Vec3Df destinationColor = Vec3Df(0,0,1);
 
 //use this function for any preprocessing of the mesh.
 void init() {
@@ -298,9 +300,9 @@ void yourDebugDraw() {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
-	glColor3f(0, 1, 1);
+	glColor3f(originColor[0],originColor[1],originColor[2]);
 	glVertex3f(testRayOrigin[0], testRayOrigin[1], testRayOrigin[2]);
-	glColor3f(0, 0, 1);
+	glColor3f(destinationColor[0],destinationColor[1],destinationColor[2]);
 	glVertex3f(testRayDestination[0], testRayDestination[1],
 			testRayDestination[2]);
 	glEnd();
@@ -350,4 +352,19 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin,
 
 	std::cout << t << " pressed! The mouse was in location " << x << "," << y
 			<< "!" << std::endl;
+	switch (t)
+	{
+		case 's':{
+			//Trace single ray
+			kdTreeVerbose = true;
+			int triangle;
+			Vec3Df p, n;
+			castRay(testRayOrigin, testRayDestination, triangle, p, n);
+			destinationColor = performRayTracing(testRayOrigin,testRayDestination,1);
+			originColor = destinationColor;
+			testRayDestination = p + testRayOrigin;
+			kdTreeVerbose = false;
+			break;
+		}
+	}
 }

@@ -278,16 +278,6 @@ void keyboard(unsigned char key, int x, int y)
 		}
 		break;
 	}
-	case 's':{
-		//Trace single ray
-		kdTreeVerbose = true;
-		Vec3Df testRayOrigin, testRayDestination;
-		produceRay(x, y, &testRayOrigin, &testRayDestination);
-		performRayTracing(testRayOrigin, testRayDestination,bounces);
-		kdTreeVerbose = false;
-		tree->prettyPrintHit(testRayOrigin, testRayDestination);
-		break;
-	}
 
 	case 'r':
 	{
