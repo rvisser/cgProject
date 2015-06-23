@@ -32,7 +32,7 @@ void init() {
 	//otherwise the application will not load properly
 	//OR make sure the .obj is located in the working directory
 	//MyMesh.loadMesh("cube.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	MyMesh.loadMesh("test.obj", true);
 	MyMesh.computeVertexNormals();
 
 
@@ -48,8 +48,6 @@ void init() {
 	start->prettyPrint();
 
 	tree = KDNode::build(start, 5);
-
-	tree->prettyPrint();
 
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
