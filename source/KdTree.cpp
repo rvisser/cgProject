@@ -29,26 +29,11 @@ bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & d
 		distance = hit1.getLength();
 	}
 
-	/*if(!result){
-		result = isBetween(origin, this->lbf, this->rtr);
-		distance = 0;
-	}*/
-	/*if(kdTreeVerbose){
-		std::cout << distance << " " << result << std::endl;
-		if(!result){
-			std::cout << "LBF: " << this->lbf << result << std::endl;
-			std::cout << "RTR: " << this->rtr << result << std::endl;
-			std::cout << "RO: " << origin << result << std::endl;
-			std::cout << "RD: " << dest << result << std::endl;
-		}else{
-			//std::cout << "T: " << this-> << result << std::endl;
-		}
-	}*/
 	return result;
 }
 
-bool trianglesDistancePairComparison(std::pair< float, std::list<unsigned int> > first,
-		std::pair< float, std::list<unsigned int> > second){
+bool trianglesDistancePairComparison(std::pair< float, std::vector<unsigned int> * > first,
+		std::pair< float, std::vector<unsigned int> * > second){
 	return first.first < second.first;
 }
 
@@ -60,7 +45,7 @@ bool trianglesDistancePairComparison(std::pair< float, std::list<unsigned int> >
 KDLeaf::KDLeaf(Vec3Df lbf, Vec3Df rtr): KD(){
 	this->lbf = lbf;
 	this->rtr = rtr;
-	this->triangles = std::list<unsigned int>();
+	this->triangles = std::vector<unsigned int>();
 }
 
 KDLeaf::KDLeaf(){
@@ -80,13 +65,13 @@ void KDLeaf::add(unsigned int triangle){
 	if(isBetween(p1, this->lbf, this->rtr) ||
 			isBetween(p2, this->lbf, this->rtr) ||
 			isBetween(p3, this->lbf, this->rtr)){
-		this->triangles.push_front(triangle);
+		this->triangles.push_back(triangle);
 	}else{
 		Vec3Df half = (this->rtr - this->lbf) / 2;
 		Vec3Df middle = this->lbf + half;
 		Vec3Df points [3] = {p1, p2, p3};
 		if(triBoxOverlap(middle, half, points)){
-			this->triangles.push_front(triangle);
+			this->triangles.push_back(triangle);
 		}
 	}
 }
@@ -94,7 +79,7 @@ void KDLeaf::add(unsigned int triangle){
 void KDLeaf::optimizeBox(){
 	if(this->triangles.size() > 0){
 		float min1 = FLT_MAX, min2 = FLT_MAX, min3 = FLT_MAX, max1 = FLT_MAX * -1, max2 = FLT_MAX * -1, max3 = FLT_MAX * -1;
-		for(std::list<unsigned int>::iterator it = this->triangles.begin(); it != this->triangles.end(); ++it){
+		for(std::vector<unsigned int>::iterator it = this->triangles.begin(); it != this->triangles.end(); ++it){
 			unsigned int i = *it;
 			for(int tv = 0; tv < 3; ++tv){
 
@@ -150,12 +135,12 @@ float KDLeaf::cost(){
 	return FLT_MAX;
 }
 
-void KDLeaf::getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
-		std::list< std::pair< float, std::list<unsigned int> > > & triangles){
+void KDLeaf::getOrderedTriangles(const Vec3Df & origin, const Vec3Df & dest,
+		std::list< std::pair< float, std::vector<unsigned int> * > > & triangles){
 	//triangles = std::list< std::pair< float, std::list<unsigned int> > >();
 	float distance;
 	if(this->interSectsWithRay(origin, dest, distance)){
-		triangles.push_back(std::pair< float, std::list<unsigned int> >(distance, this->triangles));
+		triangles.push_back(std::pair< float, std::vector<unsigned int> * >(distance, &this->triangles));
 	}
 }
 
@@ -193,7 +178,7 @@ KD* KDNode::build(KDLeaf * from, const unsigned int depth){
 		for(int i = 1; i < parts; ++ i){
 			KDLeaf * left = new KDLeaf(from->lbf, from->rtr - (parts - i) * step);
 			KDLeaf * right = new KDLeaf(from->lbf + i * step, from->rtr);
-			for(std::list<unsigned int>::iterator t = from->triangles.begin();
+			for(std::vector<unsigned int>::iterator t = from->triangles.begin();
 					t != from->triangles.end(); ++t){
 				left->add(*t);
 				right->add(*t);
@@ -212,14 +197,14 @@ KD* KDNode::build(KDLeaf * from, const unsigned int depth){
 	return new KDNode(from->lbf, from->rtr, KDNode::build(minL, depth - 1), KDNode::build(minR, depth - 1));
 }
 
-void KDNode::getOrderedTrianlges(const Vec3Df & origin, const Vec3Df & dest,
-		std::list< std::pair< float, std::list<unsigned int> > > & triangles){
-	std::list< std::pair< float, std::list<unsigned int> > > fromLeft;
+void KDNode::getOrderedTriangles(const Vec3Df & origin, const Vec3Df & dest,
+		std::list< std::pair< float, std::vector<unsigned int> * > > & triangles){
+	std::list< std::pair< float, std::vector<unsigned int> * > > fromLeft;
 	float distance;
 	if(this->interSectsWithRay(origin, dest, distance)){
-		this->left->getOrderedTrianlges(origin, dest, fromLeft);
-		std::list< std::pair< float, std::list<unsigned int> > > fromRight;
-		this->right->getOrderedTrianlges(origin, dest, fromRight);
+		this->left->getOrderedTriangles(origin, dest, fromLeft);
+		std::list< std::pair< float, std::vector<unsigned int> * > > fromRight;
+		this->right->getOrderedTriangles(origin, dest, fromRight);
 		if(fromRight.size() > 0 && fromLeft.size() > 0){
 			fromLeft.merge(fromRight, trianglesDistancePairComparison);
 		}else if(fromRight.size() > 0){
