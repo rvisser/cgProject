@@ -18,19 +18,37 @@
 #include "raytracing.h"
 #include "aabbTriangle.h"
 
+/**
+ * KD::intersectsWithRay
+ * Tests the bounding box (aabb) of this node against a ray
+ * @param origin Origin of the ray
+ * @param dest Destination of the rat
+ * @param out distance Distance from the origin of the ray to the bounding box, if the ray intersects
+ * @result True if the ray hits
+ */
+
 inline bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance){
+	//Translate the box with te origin of the ray
 	Vec3Df lbfT = this->lbf - origin, rtrT = this->rtr - origin;
 	Vec3Df hit1, hit2;
 	Vec3Df ray = dest - origin;
+	//Simple check: is the ray in the box?
 	bool result = isBetween(origin, this->lbf, this->rtr);
 	distance = 0;
 	if(!result){
+		//If the ray did not start in the box, does it intersect the box?
 		result = boxTest(ray, lbfT, rtrT, hit1, hit2);
 		distance = hit1.getLength();
 	}
 
 	return result;
 }
+
+/**
+ * trianglesDistancePairComparison
+ * Comparison function for two element of the type <distance, list>. Orders on distance
+ * @result True if first is smaller than second
+ */
 
 bool trianglesDistancePairComparison(std::pair< float, std::vector<unsigned int> * > first,
 		std::pair< float, std::vector<unsigned int> * > second){
@@ -42,21 +60,48 @@ bool trianglesDistancePairComparison(std::pair< float, std::vector<unsigned int>
  */
 
 
+/**
+ * KDLeaf::KDLeaf
+ * Constructs an empty leaf with aabb (lbf, rtr)
+ * @param lbf LeftBottomFront coordinate of the aabb
+ * @param rtr RightTopRead coordinate of the aabb
+ */
+
 KDLeaf::KDLeaf(Vec3Df lbf, Vec3Df rtr): KD(){
 	this->lbf = lbf;
 	this->rtr = rtr;
 	this->triangles = std::vector<unsigned int>();
 }
 
+/**
+ * KDLeaf::KDLeaf
+ * Constructs a leaf without an aabb
+ */
+
 KDLeaf::KDLeaf(){
 	KDLeaf(Vec3Df(), Vec3Df());
 }
+
+/**
+ * isBetween
+ * Checks if a point lies in the aabb defined by lbf en rtr
+ * @param point Point to be tested
+ * @param lfb LeftBottomFront of the aabb
+ * @param rtr RightTopear of the aabb
+ * @result True if the point is in the aabb
+ */
 
 inline bool isBetween(const Vec3Df & point, const Vec3Df & lbf, const Vec3Df & rtr){
 	return point[0] >= lbf[0] && point[0] <= rtr[0] &&
 			point[1] >= lbf[1] && point[1] <= rtr[1] &&
 			point[2] >= lbf[2] && point[2] <= rtr[2];
 }
+
+/**
+ * KDLeaf::add
+ * Add a triangle to this leaf, if this triangle is inside the aabb of this leaf
+ * @param triangle The index of the triangle in the mesh
+ */
 
 void KDLeaf::add(unsigned int triangle){
 	Triangle t = MyMesh.triangles[triangle];
@@ -75,6 +120,11 @@ void KDLeaf::add(unsigned int triangle){
 		}
 	}
 }
+
+/**
+ * KDLeaf::optimizeBox
+ * Shrinks the aabb to the smallest aabb possible with the triangles in this leaf
+ */
 
 void KDLeaf::optimizeBox(){
 	if(this->triangles.size() > 0){
@@ -125,6 +175,12 @@ void KDLeaf::optimizeBox(){
 	}
 }
 
+/**
+ * KDLeaf::cost
+ * Calculates an estimate of the cost of shooting a ray through this leaf
+ * @result Cost
+ */
+
 float KDLeaf::cost(){
 	Vec3Df vol = this->rtr - this->lbf;
 	if(this->triangles.size() > 0){
@@ -135,6 +191,14 @@ float KDLeaf::cost(){
 	return FLT_MAX;
 }
 
+/**
+ * KDLeaf::getOrderedTriangles
+ * Tests the bounding box (aabb) of this node against a ray, and return the triangles if the test succeeds
+ * @param origin Origin of the ray
+ * @param dest Destination of the ray
+ * @param out list List with pairs of <distance, triangles>
+ */
+
 void KDLeaf::getOrderedTriangles(const Vec3Df & origin, const Vec3Df & dest,
 		std::list< std::pair< float, std::vector<unsigned int> * > > & triangles){
 	//triangles = std::list< std::pair< float, std::list<unsigned int> > >();
@@ -144,10 +208,20 @@ void KDLeaf::getOrderedTriangles(const Vec3Df & origin, const Vec3Df & dest,
 	}
 }
 
+/**
+ * KDLeaf::prettyPrint
+ * Print the contents of this leaf to stdout
+ */
+
 void KDLeaf::prettyPrint(){
 	std::cout << "(LEAF: " << this->lbf << " " << this->rtr << " "
 			<< this->triangles.size() << " " << this->cost() <<  ")" << std::endl;
 }
+
+/**
+ * KDLeaf::prettyPrintHit
+ * Tests the bounding box (aabb) of this leaf against a ray, and prints the result with some other properties
+ */
 
 void KDLeaf::prettyPrintHit(Vec3Df origin, Vec3Df dest){
 	float ign;
@@ -160,12 +234,30 @@ void KDLeaf::prettyPrintHit(Vec3Df origin, Vec3Df dest){
  * class KDNode
  */
 
+/**
+ * KDNode::KDNode
+ * Constructs a KDNode with an aabb and two leaves
+ * @param lbf LeftBottomFront of the aabb
+ * @param rtr RightTopRear of the aabb
+ * @param left Left node or leaf beneath this node
+ * @param right Right node or leaf beneath this node
+ */
+
 KDNode::KDNode(Vec3Df lbf, Vec3Df rtr, KD * left, KD * right): KD(){
 	this->lbf = lbf;
 	this->rtr = rtr;
 	this->left = left;
 	this->right = right;
 }
+
+/**
+ * KDNode::build
+ * Build a tree from one starting node. Stops if depth is zero, or if this node contains few triangles
+ * @param from KDLeaf containing al the triangles and aabb to construct the tree from
+ * @param depth The maximum depth that is allowed to beneath this node
+ * @param parts Divide the aabb of from into 3 times parts-1 pairs of boxes to be tested
+ * @result KDLeaf from if from is not divided, else a new node
+ */
 
 KD* KDNode::build(KDLeaf * from, const unsigned int depth, const unsigned int parts){
 	if (depth == 0 || from->triangles.size() < 100) return from;
@@ -196,6 +288,14 @@ KD* KDNode::build(KDLeaf * from, const unsigned int depth, const unsigned int pa
 	return new KDNode(from->lbf, from->rtr, KDNode::build(minL, depth - 1, parts), KDNode::build(minR, depth - 1, parts));
 }
 
+/**
+ * KDNode::getOrderedTriangles
+ * Tests the bounding box (aabb) of this node against a ray, and return the triangles of the leaves if the test succeeds
+ * @param origin Origin of the ray
+ * @param dest Destination of the ray
+ * @param out list List with pairs of <distance, triangles>
+ */
+
 void KDNode::getOrderedTriangles(const Vec3Df & origin, const Vec3Df & dest,
 		std::list< std::pair< float, std::vector<unsigned int> * > > & triangles){
 	std::list< std::pair< float, std::vector<unsigned int> * > > fromLeft;
@@ -213,6 +313,11 @@ void KDNode::getOrderedTriangles(const Vec3Df & origin, const Vec3Df & dest,
 	triangles = fromLeft;
 }
 
+/**
+ * KDNode::prettyPrint
+ * Print the contents of this node and its leaves to stdout
+ */
+
 void KDNode::prettyPrint(){
 	std::cout << "(NODE: " << this->lbf << " " << this->rtr << std::endl;
 	std::cout << "LEFT: ";
@@ -221,6 +326,12 @@ void KDNode::prettyPrint(){
 	this->right->prettyPrint();
 	std::cout << ")" << std::endl;
 }
+
+/**
+ * KDNode::prettyPrintHit
+ * Tests the bounding box (aabb) of this node against a ray, and prints the result with some other properties
+ */
+
 void KDNode::prettyPrintHit(Vec3Df origin, Vec3Df dest){
 	float ign;
 	std::cout << "(NODE: " << this->lbf << " " << this->rtr << " " << this->interSectsWithRay(origin, dest, ign) << std::endl;
