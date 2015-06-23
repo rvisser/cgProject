@@ -300,7 +300,7 @@ void yourDebugDraw() {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
-	glColor3f(originColor[0],originColor[1],originColor[3]);
+	glColor3f(originColor[0],originColor[1],originColor[2]);
 	glVertex3f(testRayOrigin[0], testRayOrigin[1], testRayOrigin[2]);
 	glColor3f(destinationColor[0],destinationColor[1],destinationColor[2]);
 	glVertex3f(testRayDestination[0], testRayDestination[1],
