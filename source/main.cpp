@@ -46,6 +46,10 @@ bool kdTreeVerbose = false;
 
 extern KD * tree;
 
+GLfloat light_ambient[] = { 0.0, 0.0, 0.0, 1.0 };
+GLfloat light_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat light_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+
 /**
  * Main function, which is drawing an image (frame) on the screen
 */
@@ -92,11 +96,15 @@ int main(int argc, char** argv)
 
 	//activate the light following the camera
     glEnable( GL_LIGHTING );
-    glEnable( GL_LIGHT0 );
     glEnable(GL_COLOR_MATERIAL);
+
+/*
+    glEnable( GL_LIGHT0 );
     int LightPos[4] = {0,0,2,0};
     int MatSpec [4] = {1,1,1,1};
     glLightiv(GL_LIGHT0,GL_POSITION,LightPos);
+    */
+
 
 	//normals will be normalized in the graphics pipeline
 	glEnable(GL_NORMALIZE);
@@ -161,6 +169,24 @@ int main(int argc, char** argv)
 
     glutSwapBuffers();//glut internal switch
 	glPopAttrib();//return to old GL state
+
+	//Update the light sources in the scene so it has a shaded display.
+	for (unsigned int i = 0; i < MyLightPositions.size(); ++i) {
+		if(!glIsEnabled(GL_LIGHT0 + i)){
+		    glEnable( GL_LIGHT0 + i);
+		    glLightfv(GL_LIGHT0 + i, GL_AMBIENT, light_ambient);
+		    glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, light_diffuse);
+		    glLightfv(GL_LIGHT0 + i, GL_SPECULAR, light_specular);
+		    std::cout << "I AM ENABLED :  " << GL_LIGHT0 + i << std::endl;
+		}
+
+		float xl = MyLightPositions[i][0];
+		float yl = MyLightPositions[i][1];
+		float zl = MyLightPositions[i][2];
+	    float LightPos[4] = {xl, yl, zl, 1};
+
+	    glLightfv(GL_LIGHT0 + i,GL_POSITION,LightPos);
+	}
 }
 //Window changes size
 void reshape(int w, int h)
@@ -270,7 +296,10 @@ void keyboard(unsigned char key, int x, int y)
 		    fflush(stdout);
 		}
 		else{
+			glDisable( GL_LIGHT0 + (MyLightPositions.size()-1));
+			std::cout << "I AM DISABLED :  " << GL_LIGHT0 + selectedLight << std::endl;
 			MyLightPositions.erase(MyLightPositions.begin()+selectedLight);
+
 			if(selectedLight > 0)
 				selectedLight--;
 			else
