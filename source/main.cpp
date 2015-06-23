@@ -10,6 +10,14 @@
 #include "traqueboule.h"
 #include "imageWriter.h"
 #include "KdTree.h"
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <stdexcept>
+#include <map>
+#include <sstream>
+
+std::map<std::string, std::string> config;
 
 
 
@@ -67,11 +75,39 @@ void display(void);
 void reshape(int w, int h);
 void keyboard(unsigned char key, int x, int y);
 
+void loadConfig(){
+	std::string id, eq, val;
+	std::ifstream cfgfile;
+	cfgfile.open ("groep21.config");
+	std::string line;
+	while (std::getline(cfgfile, line)){
+		std::istringstream iss(line);
+		std::string id, eq, val;
+		if (!(iss >> id >> eq >> val)) { continue; } // error
+		if (id[0] == '#') continue;  // skip comments
+		if (eq != "=") throw std::runtime_error("Parse error");
+		std::cout << "Config setting: " << id << " is " << val << std::endl;
+		config[id] = val;
+	}
+	cfgfile.close();
+}
+
+void getSettings(){
+	RenderSize_X = atoi(config["renderHeight"].c_str());
+	RenderSize_Y = atoi(config["renderWidth"].c_str());
+	sampling = atoi(config["superSampling"].c_str());
+	bounces = atoi(config["bounces"].c_str());
+}
+
 /**
  * Main Programme
  */
 int main(int argc, char** argv)
 {
+	loadConfig();
+	getSettings();
+	WindowSize_X = atoi(config["windowWidth"].c_str());
+	WindowSize_Y = atoi(config["windowHeight"].c_str());
     glutInit(&argc, argv);
 
     //framebuffer setup

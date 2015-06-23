@@ -18,7 +18,7 @@
 #include "raytracing.h"
 #include "aabbTriangle.h"
 
-bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance){
+inline bool KD::interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance){
 	Vec3Df lbfT = this->lbf - origin, rtrT = this->rtr - origin;
 	Vec3Df hit1, hit2;
 	Vec3Df ray = dest - origin;
@@ -167,15 +167,14 @@ KDNode::KDNode(Vec3Df lbf, Vec3Df rtr, KD * left, KD * right): KD(){
 	this->right = right;
 }
 
-KD* KDNode::build(KDLeaf * from, const unsigned int depth){
+KD* KDNode::build(KDLeaf * from, const unsigned int depth, const unsigned int parts){
 	if (depth == 0 || from->triangles.size() < 100) return from;
-	int parts = 4;
 	float minCost = FLT_MAX;
 	KDLeaf * minL, * minR;
 	for(int axis = 0; axis < 3; ++axis){
 		if(from->lbf[axis] == from->rtr[axis]) continue;//This is a plane!?
 		Vec3Df step = ((from->rtr[axis] - from->lbf[axis])/parts) * Vec3Df(axis == 0, axis == 1, axis == 2);
-		for(int i = 1; i < parts; ++ i){
+		for(unsigned int i = 1; i < parts; ++ i){
 			KDLeaf * left = new KDLeaf(from->lbf, from->rtr - (parts - i) * step);
 			KDLeaf * right = new KDLeaf(from->lbf + i * step, from->rtr);
 			for(std::vector<unsigned int>::iterator t = from->triangles.begin();
@@ -194,7 +193,7 @@ KD* KDNode::build(KDLeaf * from, const unsigned int depth){
 	if(minCost == FLT_MAX) return from;
 	minL->optimizeBox();
 	minR->optimizeBox();
-	return new KDNode(from->lbf, from->rtr, KDNode::build(minL, depth - 1), KDNode::build(minR, depth - 1));
+	return new KDNode(from->lbf, from->rtr, KDNode::build(minL, depth - 1, parts), KDNode::build(minR, depth - 1, parts));
 }
 
 void KDNode::getOrderedTriangles(const Vec3Df & origin, const Vec3Df & dest,

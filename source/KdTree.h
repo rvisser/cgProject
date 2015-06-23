@@ -20,7 +20,7 @@ inline bool isBetween(const Vec3Df & point, const Vec3Df & lbf, const Vec3Df & r
 class KD {
 public:
 	Vec3Df lbf, rtr;
-	bool interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance);
+	inline bool interSectsWithRay(const Vec3Df & origin, const Vec3Df & dest, float & distance);
 	virtual void getOrderedTriangles(const Vec3Df & origin, const Vec3Df & dest,
 			std::list< std::pair< float, std::vector<unsigned int> * > > & triangles) = 0;
 	virtual void prettyPrint() = 0;
@@ -50,7 +50,7 @@ private:
 	KD * left, * right;
 public:
 	KDNode(Vec3Df lbf, Vec3Df rtr, KD* left, KD* right);
-	static KD* build(KDLeaf * from, unsigned int depth);
+	static KD* build(KDLeaf * from, unsigned int depth, unsigned int parts);
 	void prettyPrint();
 	void prettyPrintHit(Vec3Df origin, Vec3Df dest);
 	void getOrderedTriangles(const Vec3Df & origin, const Vec3Df & dest,
