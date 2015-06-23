@@ -420,7 +420,12 @@ void keyboard(unsigned char key, int x, int y)
 			for (unsigned int x=0; x<RenderSize_X;++x)
 				result.setPixel(x,y, RGBAValue(colors[RenderSize_X * y + x][0]/maxintensity, colors[RenderSize_X * y + x][1]/maxintensity, colors[RenderSize_X * y + x][2]/maxintensity, 1));
 		delete [] colors;
-		result.writeImagePng("result.png");
+		std::string outputFile = config["outputfileName"] + "." + config["outputfileType"];
+		if(config["outputfileType"] == "png"){
+			result.writeImagePng(outputFile.c_str());
+		}else{
+			result.writeImagePpm(outputFile.c_str());
+		}
 		cout<<"Raytracing finished"<<endl;
 		break;
 	}
