@@ -5,6 +5,7 @@
 + Jens Voortman (4081005)
 + Ruben Bes (4227492)
 + Diony Tadema (4219198)
++ Aurél Bánsági (4251342)
 
 ## Controls
 + L: Add Light
