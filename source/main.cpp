@@ -213,7 +213,6 @@ int main(int argc, char** argv)
 		    glLightfv(GL_LIGHT0 + i, GL_AMBIENT, light_ambient);
 		    glLightfv(GL_LIGHT0 + i, GL_DIFFUSE, light_diffuse);
 		    glLightfv(GL_LIGHT0 + i, GL_SPECULAR, light_specular);
-		    std::cout << "I AM ENABLED :  " << GL_LIGHT0 + i << std::endl;
 		}
 
 		float xl = MyLightPositions[i][0];
@@ -333,7 +332,6 @@ void keyboard(unsigned char key, int x, int y)
 		}
 		else{
 			glDisable( GL_LIGHT0 + (MyLightPositions.size()-1));
-			std::cout << "I AM DISABLED :  " << GL_LIGHT0 + selectedLight << std::endl;
 			MyLightPositions.erase(MyLightPositions.begin()+selectedLight);
 
 			if(selectedLight > 0)
@@ -341,6 +339,14 @@ void keyboard(unsigned char key, int x, int y)
 			else
 				selectedLight = MyLightPositions.size()-1;
 		}
+		break;
+	}
+
+	case 'c':
+	{
+		printf("Reloading configuration\n");
+		loadConfig();
+		getSettings();
 		break;
 	}
 
