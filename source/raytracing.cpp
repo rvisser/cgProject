@@ -278,8 +278,9 @@ void yourDebugDraw() {
 	glColor3f(1, 1, 1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
+
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i) {
-		if (i == selectedLight) {
+	    if (i == selectedLight) {
 			glColor3f(1, 0, 0);
 		}
 		glVertex3fv(MyLightPositions[i].pointer());
