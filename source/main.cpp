@@ -34,12 +34,12 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 800;  // resolution X
 unsigned int WindowSize_Y = 800;  // resolution Y
 
-unsigned int RenderSize_X = 800;
-unsigned int RenderSize_Y = 800;
+unsigned int RenderSize_X = 200;
+unsigned int RenderSize_Y = 200;
 
 unsigned int selectedLight = 0;
 
-unsigned int sampling = 4; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
+unsigned int sampling = 2; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
 unsigned int bounces = 1;//max bounces determines reflection depth
 
 bool kdTreeVerbose = false;
@@ -308,16 +308,6 @@ void keyboard(unsigned char key, int x, int y)
 		}
 		break;
 	}
-	case 's':{
-		//Trace single ray
-		kdTreeVerbose = true;
-		Vec3Df testRayOrigin, testRayDestination;
-		produceRay(x, y, &testRayOrigin, &testRayDestination);
-		performRayTracing(testRayOrigin, testRayDestination,bounces);
-		kdTreeVerbose = false;
-		tree->prettyPrintHit(testRayOrigin, testRayDestination);
-		break;
-	}
 
 	case 'r':
 	{
@@ -389,7 +379,7 @@ void keyboard(unsigned char key, int x, int y)
 			for (unsigned int x=0; x<RenderSize_X;++x)
 				result.setPixel(x,y, RGBAValue(colors[RenderSize_X * y + x][0]/maxintensity, colors[RenderSize_X * y + x][1]/maxintensity, colors[RenderSize_X * y + x][2]/maxintensity, 1));
 		delete [] colors;
-		result.writeImage("result.ppm");
+		result.writeImagePng("result.png");
 		cout<<"Raytracing finished"<<endl;
 		break;
 	}

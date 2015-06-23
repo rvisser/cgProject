@@ -12,12 +12,14 @@
 
 //temporary variables
 //these are only used to illustrate 
-//a simple debug drawing. A ray 
+//a simple debug drawing. A ray
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 float lightstrength = 1.0f;
 float ambientstrenght = 0.5f;
 KD * tree;
+Vec3Df originColor = Vec3Df(0,1,1);
+Vec3Df destinationColor = Vec3Df(0,0,1);
 
 //use this function for any preprocessing of the mesh.
 void init() {
@@ -73,7 +75,7 @@ inline Vec3Df getNormal(const Vec3Df & v1, const Vec3Df & v2, const Vec3Df & v3)
  * given a ray returns the delta at which the ray passes through the plane
  * defined by point v1 and normal n.
  */
-inline float PlaneTest(Vec3Df ray, Vec3Df n, Vec3Df v1) {
+inline float PlaneTest(const Vec3Df & ray, const Vec3Df & n, const Vec3Df & v1) {
 	//Distance from origin to the plane
 	float dist = Vec3Df::dotProduct(v1, n);
 
@@ -84,7 +86,7 @@ inline float PlaneTest(Vec3Df ray, Vec3Df n, Vec3Df v1) {
 /*
  * checks if the point p lies within a triangle with corners v1, v2 and v3.
  */
-inline bool TriangleTest(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c) {
+inline bool TriangleTest(const Vec3Df & p, const Vec3Df & a, const Vec3Df & b, const Vec3Df & c) {
 	float u, v, w;
 	Vec3Df v0 = b - a, v1 = c - a, v2 = p - a;
 	float d00 = Vec3Df::dotProduct(v0, v0);
@@ -99,12 +101,12 @@ inline bool TriangleTest(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c) {
 	return (u >= 0 && u <= 1 && v >= 0 && u + v <= 1);
 }
 
-inline float min(float f1, float f2){
+inline float min(const float & f1, const float & f2){
 	if (f1 < f2) return f1;
 	return f2;
 }
 
-inline float max(float f1, float f2){
+inline float max(const float & f1, const float & f2){
 	if (f1 > f2) return f1;
 	return f2;
 }
@@ -116,7 +118,7 @@ inline float max(float f1, float f2){
  * tIn = entrypoint
  * tOut = exitpoint
  */
-bool boxTest(Vec3Df ray, Vec3Df p1, Vec3Df p2, Vec3Df &tIn, Vec3Df &tOut) {
+bool boxTest(const Vec3Df & ray, const Vec3Df & p1, const Vec3Df & p2, Vec3Df &tIn, Vec3Df &tOut) {
 	float
 		txMin = p1[0] / ray[0],
 		txMax = p2[0] / ray[0],
@@ -139,30 +141,29 @@ inline void castRay(const Vec3Df & origin, const Vec3Df & dest, int & triangle, 
 	//Initialize the minimum distance at quite a large value
 	float nearest = FLT_MAX;
 	triangle = -1;
-	std::list< std::pair< float, std::list<unsigned int> > > list = std::list< std::pair< float, std::list<unsigned int> > >();
-	tree->getOrderedTrianlges(origin, dest, list);
+	std::list< std::pair< float, std::vector<unsigned int> * > > list = std::list< std::pair< float, std::vector<unsigned int> * > >();
+	tree->getOrderedTriangles(origin, dest, list);
 	bool found = false;
-	for(std::list< std::pair< float, std::list<unsigned int> > >::iterator it1 = list.begin(); it1 != list.end() && !found; ++it1){
-		for(std::list<unsigned int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++ it2){
+	for(std::list< std::pair< float, std::vector<unsigned int> * > >::iterator it1 = list.begin(); it1 != list.end() && !found; ++it1){
+		for(std::vector<unsigned int>::iterator it2 = it1->second->begin(); it2 != it1->second->end(); ++ it2){
 			unsigned int i  = *it2;
-	//for (unsigned int i = 0; i < MyMesh.triangles.size(); ++i) {
-		//Get all vertices and calculate edges, translated to the origin of the ray as new origin
-		Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
-		Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
-		Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
-		Vec3Df ray = dest - origin;
-		Vec3Df norm = getNormal(v1, v2, v3);
-		float hit = PlaneTest(ray, norm, v1);
-		if (hit > 0 && hit < nearest) {
-			//Make sure that p is inside the triangle using barycentric coordinates
-			if (TriangleTest(hit * ray, v1, v2, v3)) {
-				found = true;
-				point = hit * ray;
-				nearest = hit;
-				triangle = i;
-				normal = norm;
+			//Get all vertices and calculate edges, translated to the origin of the ray as new origin
+			Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
+			Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
+			Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
+			Vec3Df ray = dest - origin;
+			Vec3Df norm = getNormal(v1, v2, v3);
+			float hit = PlaneTest(ray, norm, v1);
+			if (hit > 0 && hit < nearest) {
+				//Make sure that p is inside the triangle using barycentric coordinates
+				if (TriangleTest(hit * ray, v1, v2, v3)) {
+					found = true;
+					point = hit * ray;
+					nearest = hit;
+					triangle = i;
+					normal = norm;
+				}
 			}
-		}
 		}
 	}
 }
@@ -172,34 +173,32 @@ inline void castRay(const Vec3Df & origin, const Vec3Df & dest, int & triangle, 
  * this function is faster and should be used for line of sight tests.
  */
 inline bool testRay(const Vec3Df & origin, const Vec3Df & dest) {
-	std::list< std::pair< float, std::list<unsigned int> > > list = std::list< std::pair< float, std::list<unsigned int> > >();
-	tree->getOrderedTrianlges(origin, dest, list);
-	for(std::list< std::pair< float, std::list<unsigned int> > >::iterator it1 = list.begin(); it1 != list.end(); ++it1){
-		for(std::list<unsigned int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++ it2){
+	std::list< std::pair< float, std::vector<unsigned int> * > > list = std::list< std::pair< float, std::vector<unsigned int> * > >();
+	tree->getOrderedTriangles(origin, dest, list);
+	for(std::list< std::pair< float, std::vector<unsigned int> * > >::iterator it1 = list.begin(); it1 != list.end(); ++it1){
+		for(std::vector<unsigned int>::iterator it2 = it1->second->begin(); it2 != it1->second->end(); ++ it2){
 			unsigned int i  = *it2;
-	//for (unsigned int i = 0; i < MyMesh.triangles.size(); ++i) {
-		//Get all vertices and calculate edges, translated to the origin of the ray as new origin
-		Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
-		Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
-		Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
-		Vec3Df ray = dest - origin;
-		float dist = ray.getLength();
-		Vec3Df norm = getNormal(v1, v2, v3);
-		float hit = PlaneTest(ray, norm, v1);
-		if (hit > 0) {
-			//Make sure that p is inside the triangle using barycentric coordinates
-			if (TriangleTest(hit * ray, v1, v2, v3)) {
-				if (hit * ray.getLength()<dist) return true;
+			//Get all vertices and calculate edges, translated to the origin of the ray as new origin
+			Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
+			Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
+			Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
+			Vec3Df ray = dest - origin;
+			float dist = ray.getLength();
+			Vec3Df norm = getNormal(v1, v2, v3);
+			float hit = PlaneTest(ray, norm, v1);
+			if (hit > 0) {
+				//Make sure that p is inside the triangle using barycentric coordinates
+				if (TriangleTest(hit * ray, v1, v2, v3)) {
+					if (hit * ray.getLength()<dist) return true;
+				}
 			}
 		}
-	}
 	}
 	return false;
 }
 
 //Calculate the actual diffuse color, given the diffuse color of the material and a ray hit point p
 inline Vec3Df calcDiffuse(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & normal) {
-	//TODO: check of any of this is correct
 	Vec3Df result = Vec3Df(0, 0, 0);
 	for (std::vector<Vec3Df>::iterator l = MyLightPositions.begin();
 			l != MyLightPositions.end(); ++l) {
@@ -299,9 +298,9 @@ void yourDebugDraw() {
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
-	glColor3f(0, 1, 1);
+	glColor3f(originColor[0],originColor[1],originColor[2]);
 	glVertex3f(testRayOrigin[0], testRayOrigin[1], testRayOrigin[2]);
-	glColor3f(0, 0, 1);
+	glColor3f(destinationColor[0],destinationColor[1],destinationColor[2]);
 	glVertex3f(testRayDestination[0], testRayDestination[1],
 			testRayDestination[2]);
 	glEnd();
@@ -351,4 +350,19 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin,
 
 	std::cout << t << " pressed! The mouse was in location " << x << "," << y
 			<< "!" << std::endl;
+	switch (t)
+	{
+		case 's':{
+			//Trace single ray
+			kdTreeVerbose = true;
+			int triangle;
+			Vec3Df p, n;
+			castRay(testRayOrigin, testRayDestination, triangle, p, n);
+			destinationColor = performRayTracing(testRayOrigin,testRayDestination,1);
+			originColor = destinationColor;
+			testRayDestination = p + testRayOrigin;
+			kdTreeVerbose = false;
+			break;
+		}
+	}
 }
