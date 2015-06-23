@@ -170,6 +170,7 @@ int main(int argc, char** argv)
     glutSwapBuffers();//glut internal switch
 	glPopAttrib();//return to old GL state
 
+	//Update the light sources in the scene so it has a shaded display.
 	for (unsigned int i = 0; i < MyLightPositions.size(); ++i) {
 		if(!glIsEnabled(GL_LIGHT0 + i)){
 		    glEnable( GL_LIGHT0 + i);
