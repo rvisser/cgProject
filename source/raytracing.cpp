@@ -32,7 +32,7 @@ void init() {
 	//otherwise the application will not load properly
 	//OR make sure the .obj is located in the working directory
 	//MyMesh.loadMesh("cube.obj", true);
-	MyMesh.loadMesh("dodgeColorTest.obj", true);
+	MyMesh.loadMesh(config["scene"].c_str(), true);
 	MyMesh.computeVertexNormals();
 
 
@@ -46,10 +46,10 @@ void init() {
 	start->optimizeBox();
 
 	start->prettyPrint();
-
-	tree = KDNode::build(start, 5);
-
-	tree->prettyPrint();
+	unsigned int
+		treeDepth = atoi(config["kdTreeLevels"].c_str()),
+		treeParts = atoi(config["kdTreeParts"].c_str());
+	tree = KDNode::build(start, treeDepth, treeParts);
 
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
