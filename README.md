@@ -10,9 +10,10 @@
 + Rob van den Berg (4319427)
 
 ## Controls
-+ L: Add Light
-+ l: Move last added light to the current Camera Position.
-+ r: Perfom the raytrace.
++ l: Add Light
++ m: Move last added light to the current Camera Position.
++ s: Shoot a single ray.
++ r: Perform the raytrace.
 + (Numpad) 4: Select previous light.
 + (Numpad) 6: Select next light.
 + (Numpad) 2: Move selected light to current Camera Position.

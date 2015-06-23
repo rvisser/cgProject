@@ -214,12 +214,12 @@ void keyboard(unsigned char key, int x, int y)
     switch (key)
     {
 	//add/update a light based on the camera position.
-	case 'L':
+	case 'l':
 		MyLightPositions.push_back(getCameraPosition());
 		break;
 
 	//Set last light to camera positions.
-	case 'l':
+	case 'm':
 		MyLightPositions[MyLightPositions.size()-1]=getCameraPosition();
 		break;
 
