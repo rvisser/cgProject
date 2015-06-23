@@ -12,7 +12,7 @@
 
 //temporary variables
 //these are only used to illustrate 
-//a simple debug drawing. A ray 
+//a simple debug drawing. A ray
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 float lightstrength = 1.0f;
@@ -350,4 +350,17 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin,
 
 	std::cout << t << " pressed! The mouse was in location " << x << "," << y
 			<< "!" << std::endl;
+	switch (t)
+	{
+		case 's':{
+			//Trace single ray
+			kdTreeVerbose = true;
+			int triangle;
+			Vec3Df p, n;
+			castRay(testRayOrigin, testRayDestination, triangle, p, n);
+			testRayDestination = p + testRayOrigin;
+			kdTreeVerbose = false;
+			break;
+		}
+	}
 }
