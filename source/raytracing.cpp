@@ -73,7 +73,7 @@ inline Vec3Df getNormal(const Vec3Df & v1, const Vec3Df & v2, const Vec3Df & v3)
  * given a ray returns the delta at which the ray passes through the plane
  * defined by point v1 and normal n.
  */
-inline float PlaneTest(Vec3Df ray, Vec3Df n, Vec3Df v1) {
+inline float PlaneTest(const Vec3Df & ray, const Vec3Df & n, const Vec3Df & v1) {
 	//Distance from origin to the plane
 	float dist = Vec3Df::dotProduct(v1, n);
 
@@ -84,7 +84,7 @@ inline float PlaneTest(Vec3Df ray, Vec3Df n, Vec3Df v1) {
 /*
  * checks if the point p lies within a triangle with corners v1, v2 and v3.
  */
-inline bool TriangleTest(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c) {
+inline bool TriangleTest(const Vec3Df & p, const Vec3Df & a, const Vec3Df & b, const Vec3Df & c) {
 	float u, v, w;
 	Vec3Df v0 = b - a, v1 = c - a, v2 = p - a;
 	float d00 = Vec3Df::dotProduct(v0, v0);
@@ -99,12 +99,12 @@ inline bool TriangleTest(Vec3Df p, Vec3Df a, Vec3Df b, Vec3Df c) {
 	return (u >= 0 && u <= 1 && v >= 0 && u + v <= 1);
 }
 
-inline float min(float f1, float f2){
+inline float min(const float & f1, const float & f2){
 	if (f1 < f2) return f1;
 	return f2;
 }
 
-inline float max(float f1, float f2){
+inline float max(const float & f1, const float & f2){
 	if (f1 > f2) return f1;
 	return f2;
 }
@@ -116,7 +116,7 @@ inline float max(float f1, float f2){
  * tIn = entrypoint
  * tOut = exitpoint
  */
-bool boxTest(Vec3Df ray, Vec3Df p1, Vec3Df p2, Vec3Df &tIn, Vec3Df &tOut) {
+bool boxTest(const Vec3Df & ray, const Vec3Df & p1, const Vec3Df & p2, Vec3Df &tIn, Vec3Df &tOut) {
 	float
 		txMin = p1[0] / ray[0],
 		txMax = p2[0] / ray[0],
@@ -145,24 +145,23 @@ inline void castRay(const Vec3Df & origin, const Vec3Df & dest, int & triangle, 
 	for(std::list< std::pair< float, std::vector<unsigned int> * > >::iterator it1 = list.begin(); it1 != list.end() && !found; ++it1){
 		for(std::vector<unsigned int>::iterator it2 = it1->second->begin(); it2 != it1->second->end(); ++ it2){
 			unsigned int i  = *it2;
-	//for (unsigned int i = 0; i < MyMesh.triangles.size(); ++i) {
-		//Get all vertices and calculate edges, translated to the origin of the ray as new origin
-		Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
-		Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
-		Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
-		Vec3Df ray = dest - origin;
-		Vec3Df norm = getNormal(v1, v2, v3);
-		float hit = PlaneTest(ray, norm, v1);
-		if (hit > 0 && hit < nearest) {
-			//Make sure that p is inside the triangle using barycentric coordinates
-			if (TriangleTest(hit * ray, v1, v2, v3)) {
-				found = true;
-				point = hit * ray;
-				nearest = hit;
-				triangle = i;
-				normal = norm;
+			//Get all vertices and calculate edges, translated to the origin of the ray as new origin
+			Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
+			Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
+			Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
+			Vec3Df ray = dest - origin;
+			Vec3Df norm = getNormal(v1, v2, v3);
+			float hit = PlaneTest(ray, norm, v1);
+			if (hit > 0 && hit < nearest) {
+				//Make sure that p is inside the triangle using barycentric coordinates
+				if (TriangleTest(hit * ray, v1, v2, v3)) {
+					found = true;
+					point = hit * ray;
+					nearest = hit;
+					triangle = i;
+					normal = norm;
+				}
 			}
-		}
 		}
 	}
 }
@@ -177,29 +176,27 @@ inline bool testRay(const Vec3Df & origin, const Vec3Df & dest) {
 	for(std::list< std::pair< float, std::vector<unsigned int> * > >::iterator it1 = list.begin(); it1 != list.end(); ++it1){
 		for(std::vector<unsigned int>::iterator it2 = it1->second->begin(); it2 != it1->second->end(); ++ it2){
 			unsigned int i  = *it2;
-	//for (unsigned int i = 0; i < MyMesh.triangles.size(); ++i) {
-		//Get all vertices and calculate edges, translated to the origin of the ray as new origin
-		Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
-		Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
-		Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
-		Vec3Df ray = dest - origin;
-		float dist = ray.getLength();
-		Vec3Df norm = getNormal(v1, v2, v3);
-		float hit = PlaneTest(ray, norm, v1);
-		if (hit > 0) {
-			//Make sure that p is inside the triangle using barycentric coordinates
-			if (TriangleTest(hit * ray, v1, v2, v3)) {
-				if (hit * ray.getLength()<dist) return true;
+			//Get all vertices and calculate edges, translated to the origin of the ray as new origin
+			Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
+			Vec3Df v2 = MyMesh.vertices[MyMesh.triangles[i].v[1]].p - origin;
+			Vec3Df v3 = MyMesh.vertices[MyMesh.triangles[i].v[2]].p - origin;
+			Vec3Df ray = dest - origin;
+			float dist = ray.getLength();
+			Vec3Df norm = getNormal(v1, v2, v3);
+			float hit = PlaneTest(ray, norm, v1);
+			if (hit > 0) {
+				//Make sure that p is inside the triangle using barycentric coordinates
+				if (TriangleTest(hit * ray, v1, v2, v3)) {
+					if (hit * ray.getLength()<dist) return true;
+				}
 			}
 		}
-	}
 	}
 	return false;
 }
 
 //Calculate the actual diffuse color, given the diffuse color of the material and a ray hit point p
 inline Vec3Df calcDiffuse(const Vec3Df & objectColor, const Vec3Df & p, const Vec3Df & normal) {
-	//TODO: check of any of this is correct
 	Vec3Df result = Vec3Df(0, 0, 0);
 	for (std::vector<Vec3Df>::iterator l = MyLightPositions.begin();
 			l != MyLightPositions.end(); ++l) {
