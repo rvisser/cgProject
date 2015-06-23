@@ -34,12 +34,12 @@ Mesh MyMesh;
 unsigned int WindowSize_X = 800;  // resolution X
 unsigned int WindowSize_Y = 800;  // resolution Y
 
-unsigned int RenderSize_X = 800;
-unsigned int RenderSize_Y = 800;
+unsigned int RenderSize_X = 200;
+unsigned int RenderSize_Y = 200;
 
 unsigned int selectedLight = 0;
 
-unsigned int sampling = 4; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
+unsigned int sampling = 2; //Supersampling factor. A value of 4 will lead to 16x supersampling (4 times x, 4 times y)
 unsigned int bounces = 1;//max bounces determines reflection depth
 
 bool kdTreeVerbose = false;
@@ -214,12 +214,12 @@ void keyboard(unsigned char key, int x, int y)
     switch (key)
     {
 	//add/update a light based on the camera position.
-	case 'L':
+	case 'l':
 		MyLightPositions.push_back(getCameraPosition());
 		break;
 
 	//Set last light to camera positions.
-	case 'l':
+	case 'm':
 		MyLightPositions[MyLightPositions.size()-1]=getCameraPosition();
 		break;
 

@@ -141,11 +141,11 @@ inline void castRay(const Vec3Df & origin, const Vec3Df & dest, int & triangle, 
 	//Initialize the minimum distance at quite a large value
 	float nearest = FLT_MAX;
 	triangle = -1;
-	std::list< std::pair< float, std::list<unsigned int> > > list = std::list< std::pair< float, std::list<unsigned int> > >();
-	tree->getOrderedTrianlges(origin, dest, list);
+	std::list< std::pair< float, std::vector<unsigned int> * > > list = std::list< std::pair< float, std::vector<unsigned int> * > >();
+	tree->getOrderedTriangles(origin, dest, list);
 	bool found = false;
-	for(std::list< std::pair< float, std::list<unsigned int> > >::iterator it1 = list.begin(); it1 != list.end() && !found; ++it1){
-		for(std::list<unsigned int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++ it2){
+	for(std::list< std::pair< float, std::vector<unsigned int> * > >::iterator it1 = list.begin(); it1 != list.end() && !found; ++it1){
+		for(std::vector<unsigned int>::iterator it2 = it1->second->begin(); it2 != it1->second->end(); ++ it2){
 			unsigned int i  = *it2;
 	//for (unsigned int i = 0; i < MyMesh.triangles.size(); ++i) {
 		//Get all vertices and calculate edges, translated to the origin of the ray as new origin
@@ -174,10 +174,10 @@ inline void castRay(const Vec3Df & origin, const Vec3Df & dest, int & triangle, 
  * this function is faster and should be used for line of sight tests.
  */
 inline bool testRay(const Vec3Df & origin, const Vec3Df & dest) {
-	std::list< std::pair< float, std::list<unsigned int> > > list = std::list< std::pair< float, std::list<unsigned int> > >();
-	tree->getOrderedTrianlges(origin, dest, list);
-	for(std::list< std::pair< float, std::list<unsigned int> > >::iterator it1 = list.begin(); it1 != list.end(); ++it1){
-		for(std::list<unsigned int>::iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++ it2){
+	std::list< std::pair< float, std::vector<unsigned int> * > > list = std::list< std::pair< float, std::vector<unsigned int> * > >();
+	tree->getOrderedTriangles(origin, dest, list);
+	for(std::list< std::pair< float, std::vector<unsigned int> * > >::iterator it1 = list.begin(); it1 != list.end(); ++it1){
+		for(std::vector<unsigned int>::iterator it2 = it1->second->begin(); it2 != it1->second->end(); ++ it2){
 			unsigned int i  = *it2;
 	//for (unsigned int i = 0; i < MyMesh.triangles.size(); ++i) {
 		//Get all vertices and calculate edges, translated to the origin of the ray as new origin
