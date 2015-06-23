@@ -296,11 +296,10 @@ void keyboard(unsigned char key, int x, int y)
 		    fflush(stdout);
 		}
 		else{
+			glDisable( GL_LIGHT0 + (MyLightPositions.size()-1));
+			std::cout << "I AM DISABLED :  " << GL_LIGHT0 + selectedLight << std::endl;
 			MyLightPositions.erase(MyLightPositions.begin()+selectedLight);
-			if(glIsEnabled(GL_LIGHT0 + selectedLight)){
-					    glDisable( GL_LIGHT0 + selectedLight);
-					    std::cout << "I AM DISABLED :  " << GL_LIGHT0 + selectedLight << std::endl;
-			}
+
 			if(selectedLight > 0)
 				selectedLight--;
 			else
