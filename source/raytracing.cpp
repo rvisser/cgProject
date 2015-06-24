@@ -74,7 +74,7 @@ inline Vec3Df getNormal(const Vec3Df & v1, const Vec3Df & v2, const Vec3Df & v3)
  * defined by point v1 and normal n.
  */
 inline float PlaneTest(const Vec3Df & ray, const Vec3Df & n, const Vec3Df & v1) {
-	if (Vec3Df::dotProduct(ray, n)) {
+	if (Vec3Df::dotProduct(ray, n) == 0) {
 		// The plane is parallel to the ray, so an intersection never occurs.
 		// Returning a distance of -1 so this plane won't affect the image.
 		return -1;
