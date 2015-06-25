@@ -1,0 +1,71 @@
+# Blender MTL File: 'Banana.blend'
+# Material Count: 7
+
+newmtl Banana_Brown
+Ns 86.274510
+Ka 0.000000 0.000000 0.000000
+Kd 0.037569 0.004545 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ../textures/xan
+
+newmtl Banana_Yellow
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.400428 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ../textures/angel256.ppm
+
+newmtl Ground
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ../textures/willow256.ppm
+
+newmtl Material
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.041124 0.236719 0.640000
+Ks 0.500000 0.500000 0.500000
+Ni 1.000000
+d 1.000000
+illum 2
+
+newmtl Monkey
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.005098 0.400000 0.003548
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ../textures/buffy256.ppm
+
+newmtl Monkey_Eyes
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.006399 0.020764 0.400000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ../textures/buffy256.ppm
+
+newmtl buffy-blue
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.044698 0.000000
+Ks 0.500000 0.500000 0.500000
+Ni 1.500000
+d 0.000000
+illum 2
+map_Kd ../textures/xan
