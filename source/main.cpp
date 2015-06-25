@@ -97,8 +97,8 @@ void loadConfig(){
 }
 
 void getSettings(){
-	RenderSize_X = atoi(config["renderHeight"].c_str());
-	RenderSize_Y = atoi(config["renderWidth"].c_str());
+	RenderSize_X = atoi(config["renderWidth"].c_str());
+	RenderSize_Y = atoi(config["renderHeight"].c_str());
 	sampling = atoi(config["superSampling"].c_str());
 	bounces = atoi(config["bounces"].c_str());
 }
@@ -118,7 +118,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH );
 
     // positioning and size of window
-    glutInitWindowPosition(200, 100);
+    glutInitWindowPosition(1300, 100);
     glutInitWindowSize(WindowSize_X,WindowSize_Y);
     glutCreateWindow(argv[0]);
 

@@ -15,7 +15,7 @@
 //a simple debug drawing. A ray
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-float lightstrength = 1.0f;
+float lightstrength = 100.0f;
 float ambientstrenght = 0.5f;
 KD * tree;
 Vec3Df originColor = Vec3Df(0,1,1);
@@ -134,7 +134,7 @@ bool boxTest(const Vec3Df & ray, const Vec3Df & p1, const Vec3Df & p2, Vec3Df &t
 	tOut = Vec3Df(max(txMin, txMax), max(tyMin, tyMax), max(tzMin, tzMax));
 	float inPar = max(max(tIn[0], tIn[1]), tIn[2]);
 	float outPar = min(min(tOut[0], tOut[1]), tOut[2]);
-	return inPar <= outPar && outPar >= 0;
+	return inPar <= outPar && inPar >= 0;
 }
 
 /*
@@ -150,6 +150,7 @@ inline void castRay(const Vec3Df & origin, const Vec3Df & dest, int & triangle, 
 	bool found = false;
 	for(std::list< std::pair< float, std::vector<unsigned int> * > >::iterator it1 = list.begin(); it1 != list.end() && !found; ++it1){
 		for(std::vector<unsigned int>::iterator it2 = it1->second->begin(); it2 != it1->second->end(); ++ it2){
+	//for(unsigned int i = 0; i < MyMesh.triangles.size(); i++){
 			unsigned int i  = *it2;
 			//Get all vertices and calculate edges, translated to the origin of the ray as new origin
 			Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
@@ -181,6 +182,7 @@ inline bool testRay(const Vec3Df & origin, const Vec3Df & dest) {
 	tree->getOrderedTriangles(origin, dest, list);
 	for(std::list< std::pair< float, std::vector<unsigned int> * > >::iterator it1 = list.begin(); it1 != list.end(); ++it1){
 		for(std::vector<unsigned int>::iterator it2 = it1->second->begin(); it2 != it1->second->end(); ++ it2){
+	//for(unsigned int i = 0; i < MyMesh.triangles.size(); i++){
 			unsigned int i  = *it2;
 			//Get all vertices and calculate edges, translated to the origin of the ray as new origin
 			Vec3Df v1 = MyMesh.vertices[MyMesh.triangles[i].v[0]].p - origin;
@@ -260,9 +262,10 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, unsigned in
 		color += calcDiffuse(diffuse, p * 0.9999 + origin, norm); // if calcDiffuse is working
 		color += calcAmbient(diffuse, p, norm);
 		//color += Vec3Df(0,0,0);//calcSpecular;//TODO: Implement
-		/*if (diffuse[1]>0.8,diffuse[1]>0.8,diffuse[2]>0.8) {
+		if (diffuse[1]>0.8 && diffuse[1]>0.8 && diffuse[2]>0.8) {
+			color *= 0.1;
 			color += calcReflect(Vec3Df(1,1,1),p * 0.9999 + origin,dest-origin,norm,--bounces);
-		}*///uncomment this to make white surfaces reflective
+		}//uncomment this to make white surfaces reflective
 	}
 
 	return color;
