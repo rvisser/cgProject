@@ -39,3 +39,7 @@
 ## Legenda
 + The currently selected light is highlighted in red.
 + There must always be at least one light in the scene.
+
+## External sources
++ PNG output: [lodepng](http://lodev.org/lodepng/)
++ Triangle/Box intersection based the [example code](http://fileadmin.cs.lth.se/cs/Personal/Tomas_Akenine-Moller/code/) from: Tomas Akenine-Möller, ``Fast 3D Triangle-Box Overlap Testing,'' journal of graphics tools, vol. 6, no. 1, pp. 29-33, 2001.
