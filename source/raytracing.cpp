@@ -162,7 +162,7 @@ inline void castRay(const Vec3Df & origin, const Vec3Df & dest, int & triangle, 
 			if (hit > 0 && hit < nearest) {
 				//Make sure that p is inside the triangle using barycentric coordinates
 				if (TriangleTest(hit * ray, v1, v2, v3)) {
-					//found = true;
+					found = true;
 					point = hit * ray;
 					nearest = hit;
 					triangle = i;
