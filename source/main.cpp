@@ -97,8 +97,8 @@ void loadConfig(){
 }
 
 void getSettings(){
-	RenderSize_X = atoi(config["renderHeight"].c_str());
-	RenderSize_Y = atoi(config["renderWidth"].c_str());
+	RenderSize_X = atoi(config["renderWidth"].c_str());
+	RenderSize_Y = atoi(config["renderHeight"].c_str());
 	sampling = atoi(config["superSampling"].c_str());
 	bounces = atoi(config["bounces"].c_str());
 }
