@@ -118,7 +118,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode( GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH );
 
     // positioning and size of window
-    glutInitWindowPosition(200, 100);
+    glutInitWindowPosition(1300, 100);
     glutInitWindowSize(WindowSize_X,WindowSize_Y);
     glutCreateWindow(argv[0]);
 
